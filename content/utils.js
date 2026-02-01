@@ -94,34 +94,49 @@ function injectHighlightStyles() {
   style.textContent = `
     /* Hover highlight - professional blue outline */
     .element-screenshot-highlight {
-      outline: 2px solid #2563eb !important;
-      outline-offset: 2px !important;
+      outline: 2px solid #3b82f6 !important;
+      outline-offset: -2px !important;
       cursor: crosshair !important;
-      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1) !important;
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.3), inset 0 0 20px rgba(59, 130, 246, 0.1) !important;
+      border-radius: 2px !important;
+      transition: all 0.1s ease !important;
     }
 
-    /* Minimal capture overlay */
+    /* Minimal capture overlay - dark glass effect */
     .element-screenshot-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(4px);
       z-index: 2147483647;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      color: white;
+      font-family: system-ui, -apple-system, sans-serif;
+      transition: opacity 0.3s ease;
     }
 
-    /* Simple spinner */
+    /* Modern spinner */
     .element-screenshot-spinner {
-      width: 32px;
-      height: 32px;
-      border: 3px solid #e5e7eb;
-      border-top-color: #2563eb;
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #3b82f6;
       border-radius: 50%;
-      animation: element-screenshot-spin 0.8s linear infinite;
+      animation: element-screenshot-spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      margin-bottom: 16px;
+    }
+
+    .element-screenshot-text {
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        opacity: 0.9;
     }
 
     @keyframes element-screenshot-spin {
@@ -151,7 +166,12 @@ function showCaptureOverlay() {
   const spinner = document.createElement('div');
   spinner.className = 'element-screenshot-spinner';
 
+  const text = document.createElement('div');
+  text.className = 'element-screenshot-text';
+  text.textContent = 'Processing Capture...';
+
   overlay.appendChild(spinner);
+  overlay.appendChild(text);
   document.body.appendChild(overlay);
 
   return overlay;

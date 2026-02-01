@@ -5,65 +5,67 @@
 
 // DOM elements
 const captureBtn = document.getElementById('captureBtn');
-const statusDot = document.getElementById('statusDot');
+const btnLabel = document.getElementById('btnLabel');
+const statusPill = document.getElementById('statusPill');
 const statusText = document.getElementById('statusText');
-const formatSelect = document.getElementById('formatSelect');
+
+// Settings elements
 const qualityInput = document.getElementById('qualityInput');
 const qualityValue = document.getElementById('qualityValue');
 const fullCaptureCheckbox = document.getElementById('fullCaptureCheckbox');
 const debugModeCheckbox = document.getElementById('debugModeCheckbox');
+const formatRadios = document.querySelectorAll('input[name="format"]');
 
 // Current state
 let currentState = 'idle';
 
+// Mapping for UI text
+const STATE_CONFIG = {
+  idle: { btn: 'Select Element', pill: 'idle', msg: 'Ready' },
+  selecting: { btn: 'Cancel Selection', pill: 'selecting', msg: 'Selecting' },
+  capturing: { btn: 'Capturing...', pill: 'capturing', msg: 'Processing' },
+  success: { btn: 'Captured!', pill: 'success', msg: 'Saved' },
+  error: { btn: 'Retry', pill: 'error', msg: 'Error' }
+};
+
 /**
  * Update UI to reflect current state
  * @param {string} state - One of: idle, selecting, capturing, success, error
- * @param {string} message - Status message to display
+ * @param {string} message - Optional override for status message
  */
 function updateUI(state, message) {
   currentState = state;
+  const config = STATE_CONFIG[state];
 
-  // Update button
+  // Update button state (for CSS styling)
   captureBtn.setAttribute('data-state', state);
-  const btnText = captureBtn.querySelector('.btn-text');
 
-  switch (state) {
-    case 'idle':
-      btnText.textContent = 'Capture';
-      captureBtn.disabled = false;
-      break;
-    case 'selecting':
-      btnText.textContent = 'Cancel';
-      captureBtn.disabled = false;
-      break;
-    case 'capturing':
-      btnText.textContent = 'Capturing...';
-      captureBtn.disabled = true;
-      break;
-    case 'success':
-      btnText.textContent = 'Captured';
-      captureBtn.disabled = false;
-      // Auto-reset to idle after 2 seconds
-      setTimeout(() => updateUI('idle', 'Ready'), 2000);
-      break;
-    case 'error':
-      btnText.textContent = 'Retry';
-      captureBtn.disabled = false;
-      // Auto-reset to idle after 3 seconds
-      setTimeout(() => updateUI('idle', 'Ready'), 3000);
-      break;
+  // Update button text if not capturing (capturing shows spinner)
+  if (state !== 'capturing') {
+    btnLabel.textContent = config.btn;
   }
 
-  // Update status
-  statusDot.className = `status-dot ${state}`;
-  statusText.textContent = message;
+  // Update disabled state
+  captureBtn.disabled = (state === 'capturing');
+
+  // Update status pill
+  // Remove old state classes
+  statusPill.classList.remove('idle', 'selecting', 'capturing', 'success', 'error');
+  statusPill.classList.add(config.pill);
+
+  // Update status text
+  statusText.textContent = message || config.msg;
+
+  // Auto-reset for success/error
+  if (state === 'success') {
+    setTimeout(() => updateUI('idle'), 2000);
+  } else if (state === 'error') {
+    setTimeout(() => updateUI('idle'), 3000);
+  }
 }
 
 /**
  * Send message to content script
- * @param {object} message - Message object
- * @returns {Promise<any>} Response from content script
  */
 async function sendToContentScript(message) {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -82,15 +84,19 @@ async function sendToContentScript(message) {
 async function loadSettings() {
   const settings = await chrome.storage.local.get(['format', 'quality', 'fullCapture', 'debugMode']);
 
+  // Format (Radio buttons)
   if (settings.format) {
-    formatSelect.value = settings.format;
+    const radio = document.querySelector(`input[name="format"][value="${settings.format}"]`);
+    if (radio) radio.checked = true;
   }
 
+  // Quality (Slider)
   if (settings.quality) {
     qualityInput.value = settings.quality;
-    qualityValue.textContent = settings.quality;
+    updateQualityDisplay(settings.quality);
   }
 
+  // Checkboxes
   if (settings.fullCapture !== undefined) {
     fullCaptureCheckbox.checked = settings.fullCapture;
   }
@@ -101,11 +107,21 @@ async function loadSettings() {
 }
 
 /**
+ * Update slider visual value and text
+ */
+function updateQualityDisplay(value) {
+  qualityValue.textContent = `${value}%`;
+  qualityInput.style.setProperty('--val', `${value}%`);
+}
+
+/**
  * Save settings to storage
  */
 async function saveSettings() {
+  const selectedFormat = document.querySelector('input[name="format"]:checked').value;
+
   await chrome.storage.local.set({
-    format: formatSelect.value,
+    format: selectedFormat,
     quality: parseInt(qualityInput.value),
     fullCapture: fullCaptureCheckbox.checked,
     debugMode: debugModeCheckbox.checked
@@ -113,67 +129,72 @@ async function saveSettings() {
 }
 
 // Initialize popup
+// Wrap in async immediately invoked function
 (async () => {
-  // Load settings
   await loadSettings();
 
   // Get initial state from content script
   try {
     const response = await sendToContentScript({ action: 'getState' });
 
-    if (response.isSelecting) {
-      updateUI('selecting', 'Click element');
+    if (response && response.isSelecting) {
+      updateUI('selecting');
     } else {
-      updateUI('idle', 'Ready');
+      updateUI('idle');
     }
   } catch (error) {
-    updateUI('error', error.message);
+    // If content script is not ready (e.g. restricted page), just show idle or error
+    // Don't show error immediately on simple popup open if just not injected yet
+    console.log("Content script not ready:", error);
+    updateUI('idle');
   }
 })();
 
-// Capture button click handler
+// Event Listeners
+
+// Capture Button
 captureBtn.addEventListener('click', async () => {
   if (currentState === 'idle' || currentState === 'success' || currentState === 'error') {
-    // Start selection
     try {
-      updateUI('selecting', 'Click element');
+      updateUI('selecting');
       await sendToContentScript({ action: 'startSelection' });
-      // Close popup after starting selection
-      window.close();
+      window.close(); // Close popup so user can select
     } catch (error) {
       updateUI('error', error.message);
     }
   } else if (currentState === 'selecting') {
-    // Cancel selection
     try {
       await sendToContentScript({ action: 'cancelSelection' });
-      updateUI('idle', 'Ready');
+      updateUI('idle');
     } catch (error) {
       updateUI('error', error.message);
     }
   }
 });
 
-// Format/quality/fullCapture/debugMode change handlers
-formatSelect.addEventListener('change', saveSettings);
-
-qualityInput.addEventListener('input', () => {
-  qualityValue.textContent = qualityInput.value;
+// Settings - Format Radios
+formatRadios.forEach(radio => {
+  radio.addEventListener('change', saveSettings);
 });
 
+// Settings - Quality Slider
+qualityInput.addEventListener('input', (e) => {
+  updateQualityDisplay(e.target.value);
+});
 qualityInput.addEventListener('change', saveSettings);
+
+// Settings - Checkboxes
 fullCaptureCheckbox.addEventListener('change', saveSettings);
 debugModeCheckbox.addEventListener('change', saveSettings);
 
-// Listen for messages from content script
+// Chrome Runtime Messages
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'captureStarted') {
-    updateUI('capturing', 'Processing');
+    updateUI('capturing');
   } else if (message.action === 'captureSuccess') {
-    updateUI('success', 'Saved');
+    updateUI('success');
   } else if (message.action === 'captureError') {
-    updateUI('error', message.error || 'Failed');
+    updateUI('error', message.error);
   }
-
   return true;
 });

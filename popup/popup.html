@@ -1,60 +1,161 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Element Screenshot</title>
-  <link rel="stylesheet" href="popup.css">
-</head>
-<body>
-  <div class="container">
-    <!-- Primary action button -->
-    <button class="btn" id="captureBtn" data-state="idle">
-      <span class="btn-text">Capture</span>
-    </button>
-
-    <!-- Status indicator -->
-    <div class="status">
-      <span class="status-dot" id="statusDot"></span>
-      <span class="status-text" id="statusText">Ready</span>
-    </div>
-
-    <!-- Settings (collapsible) -->
-    <details class="settings">
-      <summary class="settings-header">Settings</summary>
-      <div class="settings-content">
-        <div class="setting-row">
-          <label>Format</label>
-          <select id="formatSelect" class="select">
-            <option value="png" selected>PNG</option>
-            <option value="jpg">JPEG</option>
-          </select>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Element Snapper</title>
+    <link rel="stylesheet" href="popup.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="app-container">
+      <header class="header">
+        <div class="brand">
+          <img src="../icons/icon48.png" alt="Logo" class="logo" />
+          <h1>Element Snapper</h1>
         </div>
-        <div class="setting-row">
-          <label>Quality</label>
-          <div class="slider-group">
-            <input type="range" id="qualityInput" min="1" max="100" value="95" class="slider">
-            <span id="qualityValue" class="slider-value">95</span>
+        <div class="status-pill idle" id="statusPill">
+          <span class="status-dot"></span>
+          <span class="status-text" id="statusText">Ready</span>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <button class="capture-btn" id="captureBtn" data-state="idle">
+          <div class="btn-content">
+            <div class="btn-icon">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M4 4H10V6H6V10H4V4ZM20 4V10H18V6H14V4H20ZM4 20V14H6V18H10V20H4ZM20 20H14V18H18V14H20V20ZM12 8C14.2091 8 16 9.79086 16 12C16 14.2091 14.2091 16 12 16C9.79086 16 8 14.2091 8 12C8 9.79086 9.79086 8 12 8Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </div>
+            <span class="btn-label" id="btnLabel">Select Element</span>
+          </div>
+          <div class="btn-loading">
+            <svg class="spinner" viewBox="0 0 50 50">
+              <circle
+                class="path"
+                cx="25"
+                cy="25"
+                r="20"
+                fill="none"
+                stroke-width="5"
+              ></circle>
+            </svg>
+          </div>
+        </button>
+
+        <div class="settings-container">
+          <div class="setting-group">
+            <label class="setting-label">Format</label>
+            <div class="toggle-group">
+              <input
+                type="radio"
+                name="format"
+                id="fmt-png"
+                value="png"
+                checked
+              />
+              <label for="fmt-png" class="toggle-option">PNG</label>
+              <input type="radio" name="format" id="fmt-jpg" value="jpg" />
+              <label for="fmt-jpg" class="toggle-option">JPG</label>
+            </div>
+          </div>
+
+          <div class="setting-group">
+            <div class="slider-header">
+              <label class="setting-label">Quality</label>
+              <span id="qualityValue" class="slider-value">95%</span>
+            </div>
+            <input
+              type="range"
+              id="qualityInput"
+              min="1"
+              max="100"
+              value="95"
+              class="slider"
+              style="--val: 95%"
+            />
+          </div>
+
+          <div class="options-grid">
+            <label class="checkbox-card">
+              <input type="checkbox" id="fullCaptureCheckbox" />
+              <div class="card-content">
+                <span class="checkmark">
+                  <svg
+                    width="10"
+                    height="8"
+                    viewBox="0 0 10 8"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 4L3.5 6.5L9 1"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+                <span class="card-text">
+                  <span class="card-title">Full Page</span>
+                  <span class="card-desc">Scroll & capture</span>
+                </span>
+              </div>
+            </label>
+
+            <label class="checkbox-card">
+              <input type="checkbox" id="debugModeCheckbox" />
+              <div class="card-content">
+                <span class="checkmark">
+                  <svg
+                    width="10"
+                    height="8"
+                    viewBox="0 0 10 8"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1 4L3.5 6.5L9 1"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+                <span class="card-text">
+                  <span class="card-title">Debug</span>
+                  <span class="card-desc">Show borders</span>
+                </span>
+              </div>
+            </label>
           </div>
         </div>
-        <div class="setting-row" style="flex-direction: column; align-items: flex-start;">
-          <label>
-            <input type="checkbox" id="fullCaptureCheckbox" class="checkbox">
-            Capture full element
-          </label>
-          <span class="setting-hint">Multi-capture for elements larger than viewport</span>
-        </div>
-        <div class="setting-row" style="flex-direction: column; align-items: flex-start;">
-          <label>
-            <input type="checkbox" id="debugModeCheckbox" class="checkbox">
-            Debug mode
-          </label>
-          <span class="setting-hint">Show red borders during capture</span>
-        </div>
-      </div>
-    </details>
-  </div>
+      </main>
+    </div>
 
-  <script src="popup.js"></script>
-</body>
+    <!-- Hidden select for backward compatibility with existing JS, though we should update JS too -->
+    <select id="formatSelect" style="display: none">
+      <option value="png" selected>PNG</option>
+      <option value="jpg">JPEG</option>
+    </select>
+
+    <script src="popup.js"></script>
+  </body>
 </html>
