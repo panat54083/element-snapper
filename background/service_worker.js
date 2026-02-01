@@ -186,36 +186,60 @@ function generateFilename(elementInfo, format) {
 }
 
 /**
+ * Convert Blob to data URL
+ * Service worker compatible (doesn't use URL.createObjectURL or FileReader)
+ * @param {Blob} blob - Image blob
+ * @returns {Promise<string>} Data URL
+ */
+async function blobToDataURL(blob) {
+  const arrayBuffer = await blob.arrayBuffer();
+  const bytes = new Uint8Array(arrayBuffer);
+
+  // Convert to base64
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  const base64 = btoa(binary);
+
+  return `data:${blob.type};base64,${base64}`;
+}
+
+/**
  * Download image blob
  * Uses chrome.downloads API to save without prompt
+ * Service worker compatible - converts blob to data URL
  * @param {Blob} blob - Image blob
  * @param {string} filename - Download filename
  * @returns {Promise<void>}
  */
 async function downloadImage(blob, filename) {
-  return new Promise((resolve, reject) => {
-    // Convert blob to object URL
-    const url = URL.createObjectURL(blob);
+  try {
+    // Convert blob to data URL (service worker compatible)
+    const dataUrl = await blobToDataURL(blob);
 
-    // Start download
-    chrome.downloads.download({
-      url: url,
-      filename: filename,
-      saveAs: false  // Auto-save to default downloads folder
-    }, (downloadId) => {
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-        return;
-      }
-
-      // Wait for download to complete, then revoke object URL
-      chrome.downloads.onChanged.addListener(function listener(delta) {
-        if (delta.id === downloadId && delta.state?.current === 'complete') {
-          chrome.downloads.onChanged.removeListener(listener);
-          URL.revokeObjectURL(url);
-          resolve();
+    // Start download using data URL
+    return new Promise((resolve, reject) => {
+      chrome.downloads.download({
+        url: dataUrl,
+        filename: filename,
+        saveAs: false  // Auto-save to default downloads folder
+      }, (downloadId) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
         }
+
+        // Wait for download to complete
+        chrome.downloads.onChanged.addListener(function listener(delta) {
+          if (delta.id === downloadId && delta.state?.current === 'complete') {
+            chrome.downloads.onChanged.removeListener(listener);
+            resolve();
+          }
+        });
       });
     });
-  });
+  } catch (error) {
+    throw new Error(`Download failed: ${error.message}`);
+  }
 }
