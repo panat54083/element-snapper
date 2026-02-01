@@ -7,6 +7,9 @@
 // Initialize on page load
 console.log('Element Screenshot Capture: Content script loaded');
 
+// Store scrollbar state for multi-capture
+let scrollbarState = null;
+
 /**
  * Message handler
  * Routes messages from popup and service worker
@@ -29,6 +32,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'cancelSelection':
         // Cancel element selection mode
         elementSelector.stop();
+        sendResponse({ success: true });
+        break;
+
+      case 'hideScrollbars':
+        // Hide scrollbars for multi-capture (called before first tile)
+        scrollbarState = hideScrollbars();
+        sendResponse({ success: true });
+        break;
+
+      case 'showScrollbars':
+        // Restore scrollbars after multi-capture (called after last tile)
+        showScrollbars(scrollbarState);
+        scrollbarState = null;
         sendResponse({ success: true });
         break;
 

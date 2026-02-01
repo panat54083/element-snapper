@@ -94,79 +94,97 @@ async function captureFullElement(data, tabId, format, quality) {
   const finalCanvas = new OffscreenCanvas(finalWidth, finalHeight);
   const finalCtx = finalCanvas.getContext('2d');
 
-  // Capture each tile
-  for (let tileY = 0; tileY < tilesY; tileY++) {
-    for (let tileX = 0; tileX < tilesX; tileX++) {
-      // Calculate scroll position for this tile
-      const targetScrollX = elementAbsX + (tileX * viewport.width);
-      const targetScrollY = elementAbsY + (tileY * viewport.height);
+  try {
+    // Hide scrollbars before capturing tiles
+    await chrome.tabs.sendMessage(tabId, { action: 'hideScrollbars' });
 
-      // Request content script to scroll
-      const scrollResponse = await chrome.tabs.sendMessage(tabId, {
-        action: 'scrollToPosition',
-        x: targetScrollX,
-        y: targetScrollY
-      });
+    // Capture each tile
+    for (let tileY = 0; tileY < tilesY; tileY++) {
+      for (let tileX = 0; tileX < tilesX; tileX++) {
+        // Calculate scroll position for this tile
+        const targetScrollX = elementAbsX + (tileX * viewport.width);
+        const targetScrollY = elementAbsY + (tileY * viewport.height);
 
-      // Wait a bit more for any dynamic content to load
-      await new Promise(resolve => setTimeout(resolve, 100));
+        console.log(`Capturing tile (${tileX},${tileY}): scrolling to (${targetScrollX}, ${targetScrollY})`);
 
-      // Capture visible tab at this scroll position
-      const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
-      const blob = await fetch(dataUrl).then(r => r.blob());
-      const imageBitmap = await createImageBitmap(blob);
+        // Request content script to scroll
+        const scrollResponse = await chrome.tabs.sendMessage(tabId, {
+          action: 'scrollToPosition',
+          x: targetScrollX,
+          y: targetScrollY
+        });
 
-      // Calculate visible element size in this tile
-      const visibleWidth = Math.min(
-        viewport.width,
-        rect.width - (tileX * viewport.width)
-      );
-      const visibleHeight = Math.min(
-        viewport.height,
-        rect.height - (tileY * viewport.height)
-      );
+        console.log(`Scroll response:`, scrollResponse);
 
-      // Source region (physical pixels)
-      // Element portion starts at viewport (0,0) after our precise scroll
-      const sx = 0;
-      const sy = 0;
-      const sWidth = Math.round(visibleWidth * dpr);
-      const sHeight = Math.round(visibleHeight * dpr);
+        // Wait for dynamic content AND Chrome's capture rate limit
+        // Chrome limits captureVisibleTab to ~2 per second (500ms minimum between captures)
+        await new Promise(resolve => setTimeout(resolve, 600));
 
-      // Destination position on final canvas (physical pixels)
-      const dx = Math.round(tileX * viewport.width * dpr);
-      const dy = Math.round(tileY * viewport.height * dpr);
+        // Capture visible tab at this scroll position
+        const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
+        const blob = await fetch(dataUrl).then(r => r.blob());
+        const imageBitmap = await createImageBitmap(blob);
 
-      // Draw tile onto final canvas
-      finalCtx.drawImage(
-        imageBitmap,
-        sx, sy, sWidth, sHeight,
-        dx, dy, sWidth, sHeight
-      );
+        // Calculate visible element size in this tile
+        const visibleWidth = Math.min(
+          viewport.width,
+          rect.width - (tileX * viewport.width)
+        );
+        const visibleHeight = Math.min(
+          viewport.height,
+          rect.height - (tileY * viewport.height)
+        );
 
-      // Cleanup
-      imageBitmap.close();
+        // Source region (physical pixels)
+        // Element portion starts at viewport (0,0) after our precise scroll
+        const sx = 0;
+        const sy = 0;
+        const sWidth = Math.round(visibleWidth * dpr);
+        const sHeight = Math.round(visibleHeight * dpr);
 
-      console.log(`Tile (${tileX},${tileY}): captured ${sWidth}×${sHeight}px at (${dx},${dy})`);
+        // Destination position on final canvas (physical pixels)
+        const dx = Math.round(tileX * viewport.width * dpr);
+        const dy = Math.round(tileY * viewport.height * dpr);
+
+        // Draw tile onto final canvas
+        finalCtx.drawImage(
+          imageBitmap,
+          sx, sy, sWidth, sHeight,
+          dx, dy, sWidth, sHeight
+        );
+
+        // Cleanup
+        imageBitmap.close();
+
+        console.log(`Tile (${tileX},${tileY}): captured ${sWidth}×${sHeight}px at (${dx},${dy})`);
+      }
+    }
+
+    // Convert final canvas to blob
+    const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
+    const qualityParam = format === 'jpg' ? quality / 100 : undefined;
+
+    const stitchedBlob = await finalCanvas.convertToBlob({
+      type: mimeType,
+      quality: qualityParam
+    });
+
+    // Cleanup
+    finalCanvas.width = 0;
+    finalCanvas.height = 0;
+
+    console.log(`Multi-capture complete: ${finalWidth}×${finalHeight}px`);
+
+    return stitchedBlob;
+
+  } finally {
+    // Always restore scrollbars, even if capture fails
+    try {
+      await chrome.tabs.sendMessage(tabId, { action: 'showScrollbars' });
+    } catch (e) {
+      console.warn('Failed to restore scrollbars:', e);
     }
   }
-
-  // Convert final canvas to blob
-  const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
-  const qualityParam = format === 'jpg' ? quality / 100 : undefined;
-
-  const stitchedBlob = await finalCanvas.convertToBlob({
-    type: mimeType,
-    quality: qualityParam
-  });
-
-  // Cleanup
-  finalCanvas.width = 0;
-  finalCanvas.height = 0;
-
-  console.log(`Multi-capture complete: ${finalWidth}×${finalHeight}px`);
-
-  return stitchedBlob;
 }
 
 /**

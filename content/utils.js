@@ -166,3 +166,34 @@ function removeCaptureOverlay(overlay) {
     overlay.remove();
   }
 }
+
+/**
+ * Hide scrollbars temporarily (for clean multi-capture screenshots)
+ * @returns {object} Object with restore function
+ */
+function hideScrollbars() {
+  // Store original styles
+  const originalHtmlOverflow = document.documentElement.style.overflow;
+  const originalBodyOverflow = document.body.style.overflow;
+
+  // Hide scrollbars
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+
+  return {
+    restore: () => {
+      document.documentElement.style.overflow = originalHtmlOverflow;
+      document.body.style.overflow = originalBodyOverflow;
+    }
+  };
+}
+
+/**
+ * Show scrollbars (restore after hiding)
+ * @param {object} scrollbarState - State object returned from hideScrollbars
+ */
+function showScrollbars(scrollbarState) {
+  if (scrollbarState && scrollbarState.restore) {
+    scrollbarState.restore();
+  }
+}
