@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boundary Capture Logic - Animation</title>
+  <style>
+    :root {
+      --viewport-width: 500px; /* Scaled 1000px -> 500px */
+      --doc-width: 850px;      /* Scaled 1700px -> 850px */
+      --scale: 0.5;            /* Display scale factor */
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f3f4f6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+      color: #1f2937;
+      min-height: 100vh;
+    }
+
+    h1 { margin-bottom: 10px; color: #111827; }
+    p.subtitle { margin-bottom: 40px; color: #6b7280; font-size: 1.1rem; }
+
+    .scene {
+      background: white;
+      padding: 60px 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      width: 100%;
+      max-width: 1000px;
+      overflow: hidden;
+    }
+
+    /* THE PAGE/DOCUMENT */
+    .browser-container {
+      position: relative;
+      width: var(--doc-width);
+      height: 150px;
+      margin: 0 auto 60px;
+      border: 2px dashed #d1d5db;
+      background: #f9fafb;
+    }
+
+    .document-strip {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to right, #e0f2fe 0%, #bae6fd 100%);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+    }
+
+    .ruler-mark {
+      height: 100%;
+      width: 50px; /* Represents 100px */
+      border-right: 1px solid rgba(0,0,0,0.1);
+      display: flex;
+      align-items: flex-end;
+      justify-content: right;
+      padding-right: 5px;
+      font-size: 10px;
+      color: #64748b;
+      position: relative;
+    }
+    
+    .ruler-mark span {
+      position: absolute;
+      bottom: 5px;
+      right: 2px;
+    }
+
+    /* THE TARGET ELEMENT */
+    .target-region {
+      position: absolute;
+      top: 20px;
+      bottom: 20px;
+      left: 500px; /* Start at 1000px (scaled) */
+      width: 500px; /* Width 1000px (scaled) */
+      background: rgba(251, 191, 36, 0.3);
+      border: 2px solid #d97706;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #b45309;
+      font-weight: bold;
+      z-index: 1;
+    }
+
+    .target-label {
+      background: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      font-size: 12px;
+    }
+
+    /* THE VIEWPORT */
+    .viewport-frame {
+      position: absolute;
+      top: -10px;
+      bottom: -10px;
+      width: var(--viewport-width);
+      border: 4px solid #3b82f6;
+      border-radius: 8px;
+      box-shadow: 0 0 0 1000px rgba(0,0,0,0.05); /* Dim surroundings */
+      background: transparent;
+      z-index: 10;
+      transition: left 1s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+    }
+
+    .viewport-label {
+      position: absolute;
+      top: -30px;
+      left: 0;
+      background: #3b82f6;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    /* VISUALIZATIONS */
+    .offset-indicator {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background: rgba(239, 68, 68, 0.2); /* Red zone */
+      border-right: 2px dashed #ef4444;
+      display: none; /* Toggled by JS */
+      transition: width 0.5s ease;
+    }
+    
+    .offset-arrow {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: #ef4444;
+      transform: translateY(-50%);
+    }
+
+    .crop-zone {
+      position: absolute;
+      right: 0;
+      top: 0;
+      height: 100%;
+      background: rgba(16, 185, 129, 0.2); /* Green zone */
+      border: 2px solid #10b981;
+      display: none;
+    }
+
+    /* CONTROLS */
+    .controls {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin: 30px 0;
+    }
+
+    button {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    #btn-next { background: #2563eb; color: white; }
+    #btn-next:hover { background: #1d4ed8; }
+    #btn-next:disabled { background: #93c5fd; cursor: not-allowed; }
+
+    #btn-reset { background: white; border: 1px solid #d1d5db; color: #374151; }
+    #btn-reset:hover { background: #f3f4f6; }
+
+    /* EXPLANATION BOX */
+    .data-panel {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .log-box {
+      background: #1f2937;
+      color: #10b981;
+      font-family: 'Monaco', 'Consolas', monospace;
+      padding: 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.6;
+      height: 200px;
+      overflow-y: auto;
+    }
+
+    .info-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .info-step {
+      display: none;
+    }
+    
+    .info-step.active {
+      display: block;
+      animation: fadeIn 0.5s;
+    }
+
+    .highlight { color: #2563eb; font-weight: bold; }
+    .header-val { font-size: 1.5rem; font-weight: 800; color: #111827; }
+    
+    .math-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 8px 0;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Canvas Preview */
+    .canvas-preview {
+      margin-top: 20px;
+      text-align: center;
+      display: none;
+    }
+    canvas {
+      border: 2px solid #10b981;
+      background: #fff;
+      margin-top: 10px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Boundary Overlap Handling</h1>
+  <p class="subtitle">What happens when you try to scroll past the document end?</p>
+
+  <div class="scene">
+    <div class="browser-container">
+      <div class="document-strip" id="docStrip">
+        <!-- Rulers injected by JS -->
+      </div>
+      
+      <!-- The element we want to capture (Target Tile) -->
+      <div class="target-region">
+        <span class="target-label">Target Area (1000px - 2000px)</span>
+      </div>
+
+      <!-- The Viewport -->
+      <div class="viewport-frame" id="viewport" style="left: 0px;">
+        <div class="viewport-label">Viewport (1000px wide)</div>
+        
+         <!-- Visualization inside viewport -->
+        <div class="offset-indicator" id="offsetIndicator">
+           <div class="offset-arrow"></div>
+           <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -150%); color: #ef4444; font-weight: bold; font-size: 12px;">SKIPPED (300px)</div>
+        </div>
+        <div class="crop-zone" id="cropZone"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button id="btn-reset" onclick="reset()">↺ Reset</button>
+      <button id="btn-next" onclick="nextStep()">Next Step ▶</button>
+    </div>
+
+    <div class="data-panel">
+      <div class="log-box" id="console">
+        > Ready to start.<br>
+      </div>
+      
+      <div class="info-box">
+        <div id="step0" class="info-step active">
+          <h3>Scenario Setup</h3>
+          <p>We want to capture the <strong>2nd Tile</strong> of a large element.</p>
+          <div class="math-row"><span>Tile Start (Target X)</span> <span class="highlight">1000px</span></div>
+          <div class="math-row"><span>Viewport Width</span> <span>1000px</span></div>
+          <div class="math-row"><span>Document Width</span> <span>1700px</span></div>
+          <div class="math-row"><span>Max Possible Scroll</span> <span>700px</span></div>
+        </div>
+
+        <div id="step1" class="info-step">
+          <h3>Attempt to Scroll</h3>
+          <p>The code requests to scroll to the target position.</p>
+          <p><code>window.scrollTo(1000, 0)</code></p>
+          <p>However, the browser clamps this value because the document isn't wide enough.</p>
+        </div>
+
+        <div id="step2" class="info-step">
+          <h3>Hit Boundary</h3>
+          <p>We hit the document wall!</p>
+          <div class="math-row"><span>Target Scroll</span> <span class="highlight">1000px</span></div>
+          <div class="math-row"><span>Actual Scroll</span> <span style="color: #ef4444; font-weight: bold;">700px</span></div>
+          <p style="margin-top: 10px; font-size: 0.9em; color: #6b7280;">Since we are at x=700, the viewport shows 700px - 1700px.</p>
+        </div>
+
+        <div id="step3" class="info-step">
+          <h3>Calculate Offset</h3>
+          <p>The target area starts at 1000px. We are looking at it from 700px.</p>
+          <div class="math-row"><span>Target X</span> <span>1000</span></div>
+          <div class="math-row"><span>- Actual Scroll</span> <span>700</span></div>
+          <div class="math-row" style="border-top: 2px solid #ccc;"><span>= Offset (Crop X)</span> <span class="header-val">300px</span></div>
+        </div>
+
+        <div id="step4" class="info-step">
+          <h3>Crop & Stitch</h3>
+          <p>We take the screenshot of the viewport, but we <strong>discard the first 300px</strong>.</p>
+          <p>We only use the green area.</p>
+          <div class="canvas-preview" style="display: block;">
+            <canvas id="resultCanvas" width="350" height="60"></canvas>
+            <p>Resulting Image Tile</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Config: Scale factor 0.5 (1px on screen = 2px in reality)
+    const SCALE = 0.5;
+    
+    // Real Dimensions
+    const DOC_WIDTH = 1700;
+    const VIEWPORT_WIDTH = 1000;
+    const TARGET_SCROLL = 1000;
+    const MAX_SCROLL = DOC_WIDTH - VIEWPORT_WIDTH; // 700
+    
+    // DOM Elements
+    const viewport = document.getElementById('viewport');
+    const consoleDiv = document.getElementById('console');
+    const offsetInd = document.getElementById('offsetIndicator');
+    const cropZone = document.getElementById('cropZone');
+    const steps = [
+      document.getElementById('step0'),
+      document.getElementById('step1'),
+      document.getElementById('step2'),
+      document.getElementById('step3'),
+      document.getElementById('step4')
+    ];
+    
+    let currentStep = 0;
+
+    // Initialize Ruler
+    const rulerContainer = document.getElementById('docStrip');
+    for(let i=100; i<=DOC_WIDTH; i+=100) {
+      const mark = document.createElement('div');
+      mark.className = 'ruler-mark';
+      mark.innerHTML = `<span>${i}</span>`;
+      rulerContainer.appendChild(mark);
+    }
+
+    function log(msg) {
+      consoleDiv.innerHTML += `> ${msg}<br>`;
+      consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    }
+
+    function showStep(idx) {
+      steps.forEach((s, i) => s.classList.toggle('active', i === idx));
+    }
+
+    function nextStep() {
+      currentStep++;
+      
+      switch(currentStep) {
+        case 1:
+          log(`Command: scrollTo(x=${TARGET_SCROLL})`);
+          viewport.style.left = (TARGET_SCROLL * SCALE) + 'px'; // Try moving to target
+          // Simulate browser clamping immediately? Or animate?
+          // Let's animate overshoot then correction to show "trying"
+          setTimeout(() => {
+            viewport.style.left = (MAX_SCROLL * SCALE) + 'px';
+            log(`<span style="color:#ef4444">Warning: Scroll clamped to max ${MAX_SCROLL}px</span>`);
+          }, 600);
+          showStep(1);
+          break;
+
+        case 2:
+          showStep(2);
+          // Highlight that we are at 700, matches Step 2 text.
+          break;
+
+        case 3:
+          const offset = TARGET_SCROLL - MAX_SCROLL; // 300
+          log(`Calculating Offset...`);
+          log(`Target (${TARGET_SCROLL}) - Actual (${MAX_SCROLL}) = ${offset}px`);
+          
+          showStep(3);
+          
+          // Show visualization
+          offsetInd.style.display = 'block';
+          offsetInd.style.width = (offset * SCALE) + 'px';
+          
+          // Show the rest as green
+          cropZone.style.display = 'block';
+          cropZone.style.left = (offset * SCALE) + 'px';
+          cropZone.style.width = ((VIEWPORT_WIDTH - offset) * SCALE) + 'px';
+          break;
+
+        case 4:
+          log(`Cropping image at x=${TARGET_SCROLL - MAX_SCROLL}px (300px)`);
+          showStep(4);
+          drawResultCanvas();
+          document.getElementById('btn-next').disabled = true;
+          log(`<span style="color:#10b981">DONE: Tile extracted successfully!</span>`);
+          break;
+      }
+    }
+
+    function reset() {
+      currentStep = 0;
+      viewport.style.left = '0px';
+      offsetInd.style.display = 'none';
+      cropZone.style.display = 'none';
+      consoleDiv.innerHTML = '> Ready to start.<br>';
+      showStep(0);
+      document.getElementById('btn-next').disabled = false;
+    }
+    
+    function drawResultCanvas() {
+        const ctx = document.getElementById('resultCanvas').getContext('2d');
+        const w = 350; // Canvas width
+        const h = 60;
+        
+        // Draw gradient similar to page
+        const grad = ctx.createLinearGradient(0,0,w,0);
+        grad.addColorStop(0, '#fbbf24'); // target color
+        grad.addColorStop(1, '#f59e0b');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0,0,w,h);
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = '14px sans-serif';
+        ctx.fillText('Included Content (starts at 1000px)', 20, 35);
+    }
+  </script>
+</body>
+</html>
