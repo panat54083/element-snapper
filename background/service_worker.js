@@ -114,7 +114,10 @@ async function captureFullElement(data, tabId, format, quality) {
           y: targetScrollY
         });
 
-        console.log(`Scroll response:`, scrollResponse);
+        const actualScrollX = scrollResponse.scroll.x;
+        const actualScrollY = scrollResponse.scroll.y;
+
+        console.log(`Target scroll: (${targetScrollX}, ${targetScrollY}), Actual: (${actualScrollX}, ${actualScrollY})`);
 
         // Wait for dynamic content AND Chrome's capture rate limit
         // Chrome limits captureVisibleTab to ~2 per second (500ms minimum between captures)
@@ -135,10 +138,18 @@ async function captureFullElement(data, tabId, format, quality) {
           rect.height - (tileY * viewport.height)
         );
 
+        // Calculate absolute position of the region we want to capture
+        const regionAbsX = elementAbsX + (tileX * viewport.width);
+        const regionAbsY = elementAbsY + (tileY * viewport.height);
+
+        // Calculate where this region appears in the captured viewport
+        // If scroll didn't reach target (document boundary), region won't be at (0,0)
+        const viewportOffsetX = regionAbsX - actualScrollX;
+        const viewportOffsetY = regionAbsY - actualScrollY;
+
         // Source region (physical pixels)
-        // Element portion starts at viewport (0,0) after our precise scroll
-        const sx = 0;
-        const sy = 0;
+        const sx = Math.round(viewportOffsetX * dpr);
+        const sy = Math.round(viewportOffsetY * dpr);
         const sWidth = Math.round(visibleWidth * dpr);
         const sHeight = Math.round(visibleHeight * dpr);
 
@@ -146,17 +157,35 @@ async function captureFullElement(data, tabId, format, quality) {
         const dx = Math.round(tileX * viewport.width * dpr);
         const dy = Math.round(tileY * viewport.height * dpr);
 
-        // Draw tile onto final canvas
-        finalCtx.drawImage(
-          imageBitmap,
-          sx, sy, sWidth, sHeight,
-          dx, dy, sWidth, sHeight
-        );
+        // Validate source region is within captured image bounds
+        if (sx < 0 || sy < 0 || sx + sWidth > imageBitmap.width || sy + sHeight > imageBitmap.height) {
+          console.warn(`Tile (${tileX},${tileY}): Source region out of bounds - sx:${sx} sy:${sy} sw:${sWidth} sh:${sHeight}, image:${imageBitmap.width}×${imageBitmap.height}`);
+          // Clamp to valid region
+          const clampedSX = Math.max(0, Math.min(sx, imageBitmap.width - 1));
+          const clampedSY = Math.max(0, Math.min(sy, imageBitmap.height - 1));
+          const clampedWidth = Math.min(sWidth, imageBitmap.width - clampedSX);
+          const clampedHeight = Math.min(sHeight, imageBitmap.height - clampedSY);
+
+          if (clampedWidth > 0 && clampedHeight > 0) {
+            finalCtx.drawImage(
+              imageBitmap,
+              clampedSX, clampedSY, clampedWidth, clampedHeight,
+              dx, dy, clampedWidth, clampedHeight
+            );
+          }
+        } else {
+          // Draw tile onto final canvas
+          finalCtx.drawImage(
+            imageBitmap,
+            sx, sy, sWidth, sHeight,
+            dx, dy, sWidth, sHeight
+          );
+        }
 
         // Cleanup
         imageBitmap.close();
 
-        console.log(`Tile (${tileX},${tileY}): captured ${sWidth}×${sHeight}px at (${dx},${dy})`);
+        console.log(`Tile (${tileX},${tileY}): extracted (${sx},${sy},${sWidth}×${sHeight}) → canvas (${dx},${dy})`);
       }
     }
 
