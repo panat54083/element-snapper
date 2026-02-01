@@ -125,9 +125,6 @@ class ElementSelector {
       timestamp: Date.now()
     };
 
-    // Show overlay
-    const overlay = showCaptureOverlay();
-
     try {
       // Notify popup that capture started
       chrome.runtime.sendMessage({ action: 'captureStarted' });
@@ -138,9 +135,6 @@ class ElementSelector {
         data: captureData
       });
 
-      // Remove overlay
-      removeCaptureOverlay(overlay);
-
       if (response.success) {
         chrome.runtime.sendMessage({ action: 'captureSuccess' });
       } else {
@@ -150,9 +144,6 @@ class ElementSelector {
         });
       }
     } catch (error) {
-      // Remove overlay
-      removeCaptureOverlay(overlay);
-
       console.error('Capture failed:', error);
       chrome.runtime.sendMessage({
         action: 'captureError',
