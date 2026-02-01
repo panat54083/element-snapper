@@ -70,7 +70,7 @@ async function handleElementCapture(data, tabId) {
  * @returns {Promise<Blob>} Stitched element image
  */
 async function captureFullElement(data, tabId, format, quality) {
-  const { rect, scroll, viewport, devicePixelRatio: dpr } = data;
+  const { rect, scroll, viewport, devicePixelRatio: dpr, debugMode } = data;
 
   // Element absolute position on page
   const elementAbsX = scroll.x + rect.x;
@@ -119,15 +119,6 @@ async function captureFullElement(data, tabId, format, quality) {
 
         console.log(`Target scroll: (${targetScrollX}, ${targetScrollY}), Actual: (${actualScrollX}, ${actualScrollY})`);
 
-        // Wait for dynamic content AND Chrome's capture rate limit
-        // Chrome limits captureVisibleTab to ~2 per second (500ms minimum between captures)
-        await new Promise(resolve => setTimeout(resolve, 600));
-
-        // Capture visible tab at this scroll position
-        const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
-        const blob = await fetch(dataUrl).then(r => r.blob());
-        const imageBitmap = await createImageBitmap(blob);
-
         // Calculate visible element size in this tile
         const visibleWidth = Math.min(
           viewport.width,
@@ -141,6 +132,33 @@ async function captureFullElement(data, tabId, format, quality) {
         // Calculate absolute position of the region we want to capture
         const regionAbsX = elementAbsX + (tileX * viewport.width);
         const regionAbsY = elementAbsY + (tileY * viewport.height);
+
+        // Calculate where this tile appears in viewport for debug visualization
+        const tileViewportX = regionAbsX - actualScrollX;
+        const tileViewportY = regionAbsY - actualScrollY;
+        const tileViewportWidth = Math.min(visibleWidth, viewport.width - tileViewportX);
+        const tileViewportHeight = Math.min(visibleHeight, viewport.height - tileViewportY);
+
+        // Show debug border if debug mode enabled
+        if (debugMode) {
+          await chrome.tabs.sendMessage(tabId, {
+            action: 'showDebugBorder',
+            x: Math.max(0, tileViewportX),
+            y: Math.max(0, tileViewportY),
+            width: tileViewportWidth,
+            height: tileViewportHeight
+          });
+        }
+
+        // Wait for dynamic content AND Chrome's capture rate limit
+        // Chrome limits captureVisibleTab to ~2 per second (500ms minimum between captures)
+        // Add extra delay in debug mode so user can see the border
+        await new Promise(resolve => setTimeout(resolve, debugMode ? 1200 : 600));
+
+        // Capture visible tab at this scroll position
+        const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
+        const blob = await fetch(dataUrl).then(r => r.blob());
+        const imageBitmap = await createImageBitmap(blob);
 
         // Calculate where this region appears in the captured viewport
         // If scroll didn't reach target (document boundary), region won't be at (0,0)
@@ -207,11 +225,19 @@ async function captureFullElement(data, tabId, format, quality) {
     return stitchedBlob;
 
   } finally {
-    // Always restore scrollbars, even if capture fails
+    // Always restore scrollbars and hide debug border, even if capture fails
     try {
       await chrome.tabs.sendMessage(tabId, { action: 'showScrollbars' });
     } catch (e) {
       console.warn('Failed to restore scrollbars:', e);
+    }
+
+    if (debugMode) {
+      try {
+        await chrome.tabs.sendMessage(tabId, { action: 'hideDebugBorder' });
+      } catch (e) {
+        console.warn('Failed to hide debug border:', e);
+      }
     }
   }
 }

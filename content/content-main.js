@@ -64,6 +64,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({ scroll: actualScroll });
         break;
 
+      case 'showDebugBorder':
+        // Show debug border for tile capture visualization
+        showDebugBorder(message.x, message.y, message.width, message.height);
+        sendResponse({ success: true });
+        break;
+
+      case 'hideDebugBorder':
+        // Hide debug border
+        hideDebugBorder();
+        sendResponse({ success: true });
+        break;
+
       default:
         sendResponse({ error: 'Unknown action' });
     }

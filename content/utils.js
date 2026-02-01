@@ -197,3 +197,43 @@ function showScrollbars(scrollbarState) {
     scrollbarState.restore();
   }
 }
+
+/**
+ * Show debug border overlay for tile capture
+ * @param {number} x - X position in viewport (CSS pixels)
+ * @param {number} y - Y position in viewport (CSS pixels)
+ * @param {number} width - Width (CSS pixels)
+ * @param {number} height - Height (CSS pixels)
+ * @returns {HTMLElement} Debug border element
+ */
+function showDebugBorder(x, y, width, height) {
+  // Remove any existing debug border
+  const existing = document.getElementById('element-screenshot-debug-border');
+  if (existing) existing.remove();
+
+  const border = document.createElement('div');
+  border.id = 'element-screenshot-debug-border';
+  border.style.cssText = `
+    position: fixed;
+    left: ${x}px;
+    top: ${y}px;
+    width: ${width}px;
+    height: ${height}px;
+    border: 3px solid red;
+    box-shadow: 0 0 0 1px rgba(255, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 0, 0, 0.3);
+    pointer-events: none;
+    z-index: 2147483646;
+    background: rgba(255, 0, 0, 0.05);
+  `;
+
+  document.body.appendChild(border);
+  return border;
+}
+
+/**
+ * Remove debug border overlay
+ */
+function hideDebugBorder() {
+  const border = document.getElementById('element-screenshot-debug-border');
+  if (border) border.remove();
+}

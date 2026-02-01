@@ -11,6 +11,7 @@ const formatSelect = document.getElementById('formatSelect');
 const qualityInput = document.getElementById('qualityInput');
 const qualityValue = document.getElementById('qualityValue');
 const fullCaptureCheckbox = document.getElementById('fullCaptureCheckbox');
+const debugModeCheckbox = document.getElementById('debugModeCheckbox');
 
 // Current state
 let currentState = 'idle';
@@ -79,7 +80,7 @@ async function sendToContentScript(message) {
  * Load saved settings from storage
  */
 async function loadSettings() {
-  const settings = await chrome.storage.local.get(['format', 'quality', 'fullCapture']);
+  const settings = await chrome.storage.local.get(['format', 'quality', 'fullCapture', 'debugMode']);
 
   if (settings.format) {
     formatSelect.value = settings.format;
@@ -93,6 +94,10 @@ async function loadSettings() {
   if (settings.fullCapture !== undefined) {
     fullCaptureCheckbox.checked = settings.fullCapture;
   }
+
+  if (settings.debugMode !== undefined) {
+    debugModeCheckbox.checked = settings.debugMode;
+  }
 }
 
 /**
@@ -102,7 +107,8 @@ async function saveSettings() {
   await chrome.storage.local.set({
     format: formatSelect.value,
     quality: parseInt(qualityInput.value),
-    fullCapture: fullCaptureCheckbox.checked
+    fullCapture: fullCaptureCheckbox.checked,
+    debugMode: debugModeCheckbox.checked
   });
 }
 
@@ -148,7 +154,7 @@ captureBtn.addEventListener('click', async () => {
   }
 });
 
-// Format/quality/fullCapture change handlers
+// Format/quality/fullCapture/debugMode change handlers
 formatSelect.addEventListener('change', saveSettings);
 
 qualityInput.addEventListener('input', () => {
@@ -157,6 +163,7 @@ qualityInput.addEventListener('input', () => {
 
 qualityInput.addEventListener('change', saveSettings);
 fullCaptureCheckbox.addEventListener('change', saveSettings);
+debugModeCheckbox.addEventListener('change', saveSettings);
 
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

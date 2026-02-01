@@ -95,8 +95,9 @@ class ElementSelector {
 
     // Only scroll into view if full capture mode is enabled
     // For regular capture, we want exactly what the user sees
-    const settings = await chrome.storage.local.get(['fullCapture']);
+    const settings = await chrome.storage.local.get(['fullCapture', 'debugMode']);
     const fullCapture = settings.fullCapture || false;
+    const debugMode = settings.debugMode || false;
 
     if (fullCapture) {
       await scrollIntoView(element);
@@ -118,6 +119,7 @@ class ElementSelector {
       documentDimensions: docDims,
       devicePixelRatio: dpr,
       isCrossOriginIframe: isCrossOrigin,
+      debugMode: debugMode,
       elementInfo: {
         tagName: element.tagName,
         id: element.id || null,
