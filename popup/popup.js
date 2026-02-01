@@ -10,6 +10,7 @@ const statusText = document.getElementById('statusText');
 const formatSelect = document.getElementById('formatSelect');
 const qualityInput = document.getElementById('qualityInput');
 const qualityValue = document.getElementById('qualityValue');
+const fullCaptureCheckbox = document.getElementById('fullCaptureCheckbox');
 
 // Current state
 let currentState = 'idle';
@@ -78,7 +79,7 @@ async function sendToContentScript(message) {
  * Load saved settings from storage
  */
 async function loadSettings() {
-  const settings = await chrome.storage.local.get(['format', 'quality']);
+  const settings = await chrome.storage.local.get(['format', 'quality', 'fullCapture']);
 
   if (settings.format) {
     formatSelect.value = settings.format;
@@ -88,6 +89,10 @@ async function loadSettings() {
     qualityInput.value = settings.quality;
     qualityValue.textContent = settings.quality;
   }
+
+  if (settings.fullCapture !== undefined) {
+    fullCaptureCheckbox.checked = settings.fullCapture;
+  }
 }
 
 /**
@@ -96,7 +101,8 @@ async function loadSettings() {
 async function saveSettings() {
   await chrome.storage.local.set({
     format: formatSelect.value,
-    quality: parseInt(qualityInput.value)
+    quality: parseInt(qualityInput.value),
+    fullCapture: fullCaptureCheckbox.checked
   });
 }
 
@@ -142,7 +148,7 @@ captureBtn.addEventListener('click', async () => {
   }
 });
 
-// Format/quality change handlers
+// Format/quality/fullCapture change handlers
 formatSelect.addEventListener('change', saveSettings);
 
 qualityInput.addEventListener('input', () => {
@@ -150,6 +156,7 @@ qualityInput.addEventListener('input', () => {
 });
 
 qualityInput.addEventListener('change', saveSettings);
+fullCaptureCheckbox.addEventListener('change', saveSettings);
 
 // Listen for messages from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

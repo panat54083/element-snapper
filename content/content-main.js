@@ -12,27 +12,46 @@ console.log('Element Screenshot Capture: Content script loaded');
  * Routes messages from popup and service worker
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  switch (message.action) {
-    case 'getState':
-      // Return current selection state
-      sendResponse({ isSelecting: elementSelector.isSelecting() });
-      break;
+  // Handle async operations with IIFE
+  (async () => {
+    switch (message.action) {
+      case 'getState':
+        // Return current selection state
+        sendResponse({ isSelecting: elementSelector.isSelecting() });
+        break;
 
-    case 'startSelection':
-      // Start element selection mode
-      elementSelector.start();
-      sendResponse({ success: true });
-      break;
+      case 'startSelection':
+        // Start element selection mode
+        elementSelector.start();
+        sendResponse({ success: true });
+        break;
 
-    case 'cancelSelection':
-      // Cancel element selection mode
-      elementSelector.stop();
-      sendResponse({ success: true });
-      break;
+      case 'cancelSelection':
+        // Cancel element selection mode
+        elementSelector.stop();
+        sendResponse({ success: true });
+        break;
 
-    default:
-      sendResponse({ error: 'Unknown action' });
-  }
+      case 'scrollToPosition':
+        // Service worker requests scroll to specific position
+        window.scrollTo({
+          left: message.x,
+          top: message.y,
+          behavior: 'instant'  // Instant scroll for precise positioning
+        });
+
+        // Wait for scroll to complete and layout to stabilize
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        // Return actual scroll position (may differ from target if at document bounds)
+        const actualScroll = getScrollOffsets();
+        sendResponse({ scroll: actualScroll });
+        break;
+
+      default:
+        sendResponse({ error: 'Unknown action' });
+    }
+  })();
 
   return true; // Keep message channel open for async responses
 });

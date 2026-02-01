@@ -253,3 +253,19 @@ body {
   min-width: 30px;
   text-align: right;
 }
+
+/* Checkbox */
+.checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #2563eb;
+}
+
+.setting-hint {
+  display: block;
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: 4px;
+  margin-left: 20px;
+}

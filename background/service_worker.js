@@ -28,20 +28,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
  */
 async function handleElementCapture(data, tabId) {
   try {
-    // Step 1: Capture visible tab
-    const dataUrl = await chrome.tabs.captureVisibleTab(null, {
-      format: 'png'
-    });
-
-    // Step 2: Load settings
-    const settings = await chrome.storage.local.get(['format', 'quality']);
+    // Load settings
+    const settings = await chrome.storage.local.get(['format', 'quality', 'fullCapture']);
     const outputFormat = settings.format || 'png';
     const outputQuality = settings.quality || 95;
+    const fullCapture = settings.fullCapture || false;
 
-    // Step 3: Crop to element bounds
-    const croppedBlob = await cropImageToElement(dataUrl, data, outputFormat, outputQuality);
+    // Determine if multi-capture is needed
+    const needsMultiCapture = fullCapture && (
+      data.rect.width > data.viewport.width ||
+      data.rect.height > data.viewport.height
+    );
 
-    // Step 4: Save to downloads
+    let croppedBlob;
+    if (needsMultiCapture) {
+      croppedBlob = await captureFullElement(data, tabId, outputFormat, outputQuality);
+    } else {
+      // Use existing single-capture logic
+      const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
+      croppedBlob = await cropImageToElement(dataUrl, data, outputFormat, outputQuality);
+    }
+
+    // Save to downloads
     const filename = generateFilename(data.elementInfo, outputFormat);
     await downloadImage(croppedBlob, filename);
 
@@ -50,6 +58,115 @@ async function handleElementCapture(data, tabId) {
     console.error('Capture failed:', error);
     return { success: false, error: error.message };
   }
+}
+
+/**
+ * Capture full element using multi-capture stitching
+ * Tiles viewport captures to cover entire element
+ * @param {object} data - Capture data from content script
+ * @param {number} tabId - Tab ID for capturing
+ * @param {string} format - Output format (png/jpg)
+ * @param {number} quality - Output quality (1-100)
+ * @returns {Promise<Blob>} Stitched element image
+ */
+async function captureFullElement(data, tabId, format, quality) {
+  const { rect, scroll, viewport, devicePixelRatio: dpr } = data;
+
+  // Element absolute position on page
+  const elementAbsX = scroll.x + rect.x;
+  const elementAbsY = scroll.y + rect.y;
+
+  // Calculate tile grid
+  const tilesX = Math.ceil(rect.width / viewport.width);
+  const tilesY = Math.ceil(rect.height / viewport.height);
+
+  console.log(`Multi-capture: ${tilesX}×${tilesY} tiles for ${rect.width}×${rect.height}px element`);
+
+  // Validate final canvas size
+  const finalWidth = Math.round(rect.width * dpr);
+  const finalHeight = Math.round(rect.height * dpr);
+  const MAX_DIMENSION = 16384;
+  if (finalWidth > MAX_DIMENSION || finalHeight > MAX_DIMENSION) {
+    throw new Error(`Element too large: ${finalWidth}×${finalHeight}px exceeds max ${MAX_DIMENSION}px`);
+  }
+
+  // Create final canvas for stitching
+  const finalCanvas = new OffscreenCanvas(finalWidth, finalHeight);
+  const finalCtx = finalCanvas.getContext('2d');
+
+  // Capture each tile
+  for (let tileY = 0; tileY < tilesY; tileY++) {
+    for (let tileX = 0; tileX < tilesX; tileX++) {
+      // Calculate scroll position for this tile
+      const targetScrollX = elementAbsX + (tileX * viewport.width);
+      const targetScrollY = elementAbsY + (tileY * viewport.height);
+
+      // Request content script to scroll
+      const scrollResponse = await chrome.tabs.sendMessage(tabId, {
+        action: 'scrollToPosition',
+        x: targetScrollX,
+        y: targetScrollY
+      });
+
+      // Wait a bit more for any dynamic content to load
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Capture visible tab at this scroll position
+      const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
+      const blob = await fetch(dataUrl).then(r => r.blob());
+      const imageBitmap = await createImageBitmap(blob);
+
+      // Calculate visible element size in this tile
+      const visibleWidth = Math.min(
+        viewport.width,
+        rect.width - (tileX * viewport.width)
+      );
+      const visibleHeight = Math.min(
+        viewport.height,
+        rect.height - (tileY * viewport.height)
+      );
+
+      // Source region (physical pixels)
+      // Element portion starts at viewport (0,0) after our precise scroll
+      const sx = 0;
+      const sy = 0;
+      const sWidth = Math.round(visibleWidth * dpr);
+      const sHeight = Math.round(visibleHeight * dpr);
+
+      // Destination position on final canvas (physical pixels)
+      const dx = Math.round(tileX * viewport.width * dpr);
+      const dy = Math.round(tileY * viewport.height * dpr);
+
+      // Draw tile onto final canvas
+      finalCtx.drawImage(
+        imageBitmap,
+        sx, sy, sWidth, sHeight,
+        dx, dy, sWidth, sHeight
+      );
+
+      // Cleanup
+      imageBitmap.close();
+
+      console.log(`Tile (${tileX},${tileY}): captured ${sWidth}×${sHeight}px at (${dx},${dy})`);
+    }
+  }
+
+  // Convert final canvas to blob
+  const mimeType = format === 'jpg' ? 'image/jpeg' : 'image/png';
+  const qualityParam = format === 'jpg' ? quality / 100 : undefined;
+
+  const stitchedBlob = await finalCanvas.convertToBlob({
+    type: mimeType,
+    quality: qualityParam
+  });
+
+  // Cleanup
+  finalCanvas.width = 0;
+  finalCanvas.height = 0;
+
+  console.log(`Multi-capture complete: ${finalWidth}×${finalHeight}px`);
+
+  return stitchedBlob;
 }
 
 /**
