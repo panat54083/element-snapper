@@ -115,10 +115,32 @@ function updateQualityDisplay(value) {
 }
 
 /**
+ * Update quality slider visibility based on format
+ */
+function updateQualityState() {
+  const selectedFormat = document.querySelector('input[name="format"]:checked')?.value || 'png';
+  const qualityGroup = qualityInput.closest('.setting-group');
+  const qualityLabel = qualityGroup.querySelector('.setting-label');
+
+  if (selectedFormat === 'png') {
+    qualityGroup.classList.add('disabled');
+    qualityInput.disabled = true;
+    qualityLabel.textContent = 'Quality (JPG Only)';
+  } else {
+    qualityGroup.classList.remove('disabled');
+    qualityInput.disabled = false;
+    qualityLabel.textContent = 'Quality';
+  }
+}
+
+/**
  * Save settings to storage
  */
 async function saveSettings() {
   const selectedFormat = document.querySelector('input[name="format"]:checked').value;
+
+  // Update UI state immediately
+  updateQualityState();
 
   await chrome.storage.local.set({
     format: selectedFormat,
@@ -132,6 +154,8 @@ async function saveSettings() {
 // Wrap in async immediately invoked function
 (async () => {
   await loadSettings();
+  updateQualityState(); // Ensure correct initial state
+
 
   // Get initial state from content script
   try {
