@@ -53,11 +53,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         window.scrollTo({
           left: message.x,
           top: message.y,
-          behavior: 'instant'  // Instant scroll for precise positioning
+          behavior: 'smooth'  // Smooth scroll animation
         });
 
-        // Wait for scroll to complete and layout to stabilize
-        await new Promise(resolve => setTimeout(resolve, 150));
+        // Wait for smooth scroll animation to complete and layout to stabilize
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         // Return actual scroll position (may differ from target if at document bounds)
         const actualScroll = getScrollOffsets();
