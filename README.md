@@ -5,9 +5,11 @@ A professional Chrome extension that captures pixel-perfect screenshots of any w
 ## Features
 
 - **Pixel-Perfect Capture**: Accurate element screenshots with DPR-aware cropping
+- **Full Element Capture**: Multi-tile stitching for elements larger than viewport
 - **Professional UI**: Clean, minimal design with consistent visual language
 - **Format Options**: Save as PNG (lossless) or JPEG (with quality control)
-- **Smart Scrolling**: Automatically scrolls elements into view before capture
+- **Smart Scrolling**: Automatically scrolls elements into view before capture (full mode only)
+- **Debug Mode**: Visual borders showing capture process in real-time
 - **Edge Case Handling**: Handles fixed elements, scrollable containers, and cross-origin iframes
 - **One-Click Download**: Screenshots saved directly to downloads folder
 
@@ -34,6 +36,8 @@ A professional Chrome extension that captures pixel-perfect screenshots of any w
 
 - **Format**: Choose PNG (lossless, larger file) or JPEG (lossy, smaller file)
 - **Quality**: Adjust JPEG compression quality (1-100, default 95)
+- **Capture full element**: Enable multi-tile stitching for elements larger than viewport
+- **Debug mode**: Show red and green borders during capture process
 
 Settings are automatically saved and persist between sessions.
 
@@ -72,6 +76,83 @@ const sHeight = rect.height * dpr;
 // Crop from captured screenshot (already in physical pixels)
 ctx.drawImage(screenshot, sx, sy, sWidth, sHeight, 0, 0, sWidth, sHeight);
 ```
+
+### Full Element Capture (Multi-Tile Stitching)
+
+For elements larger than the viewport, the extension uses a sophisticated multi-tile capture and stitching algorithm:
+
+#### Algorithm Overview
+
+1. **Tile Grid Calculation**: Divide element into viewport-sized tiles
+   ```javascript
+   const tilesX = Math.ceil(elementWidth / viewportWidth);
+   const tilesY = Math.ceil(elementHeight / viewportHeight);
+   ```
+
+2. **Sequential Tile Capture**: For each tile:
+   - Scroll to position the tile in viewport
+   - Capture the visible viewport
+   - Extract the correct portion from the capture
+   - Draw onto final canvas at correct position
+
+3. **Coordinate Conversion**: Handle document boundaries correctly
+   ```javascript
+   // Target scroll position for this tile
+   const targetScrollX = elementAbsX + (tileX * viewportWidth);
+
+   // Actual scroll (may differ at document boundaries)
+   const actualScrollX = getActualScrollPosition();
+
+   // Calculate where element region appears in viewport
+   const viewportOffsetX = regionAbsX - actualScrollX;
+
+   // Extract from correct position (not always 0!)
+   const sx = viewportOffsetX * dpr;
+   ```
+
+#### Handling Document Boundaries
+
+**The Problem:**
+When capturing near page edges, the browser can't scroll to the target position, causing potential overlap if not handled correctly.
+
+**Example:**
+```
+Element: 2400px wide, Page: 1700px wide, Viewport: 1000px
+Max scroll: 700px (1700 - 1000)
+
+Tile 0: Scroll to x=0    → Actual x=0   ✓
+Tile 1: Scroll to x=1000 → Actual x=700 ✗ (boundary!)
+Tile 2: Scroll to x=2000 → Actual x=700 ✗ (boundary!)
+```
+
+**The Solution:**
+Use actual scroll position to calculate viewport offset:
+
+```javascript
+// Tile 1 example:
+targetScrollX = 1000;
+actualScrollX = 700;  // Hit boundary!
+
+// Region we want is at page position 1000-2000
+regionAbsX = 1000;
+
+// Calculate where this region appears in viewport
+viewportOffsetX = regionAbsX - actualScrollX;
+              = 1000 - 700
+              = 300;  // Extract from x=300, not x=0!
+
+// Extract correct portion
+ctx.drawImage(capture, 300*dpr, 0, ...);  // ✓ No overlap!
+```
+
+This ensures each tile extracts a unique portion of the element, even when scrolling hits document boundaries.
+
+#### Debug Mode Visualization
+
+When debug mode is enabled:
+- **Red border**: Shows the full element being captured (static)
+- **Green border**: Shows the current tile being captured (moves with each tile)
+- Helps visualize the multi-tile stitching process
 
 ### File Structure
 
@@ -115,10 +196,11 @@ element-screenshot-capture/
 
 ## Limitations
 
-1. **Viewport Only**: Can only capture elements within current viewport (Chrome API limitation)
+1. **Multi-Capture Performance**: Full element capture uses multiple viewport captures which takes time (Chrome API rate limit: ~2 captures/second)
 2. **Cross-Origin Content**: Cannot capture content from different domains (e.g., inside iframes from other sites)
 3. **Dynamic Content**: Some animations or video elements may not capture correctly
 4. **Restricted Pages**: Cannot capture on `chrome://`, `file://`, or Chrome Web Store pages
+5. **Max Canvas Size**: Element dimensions cannot exceed 16,384px (browser canvas limitation)
 
 ## Browser Compatibility
 
@@ -237,6 +319,13 @@ Contributions are welcome! Please:
 MIT License - feel free to use this extension for any purpose.
 
 ## Changelog
+
+### v1.1.0 (2026-02-01)
+- Add full element capture with multi-tile stitching
+- Fix tile overlap bug at document boundaries
+- Add debug mode with visual tile borders (red/green)
+- Remove auto-scroll in regular mode (capture exactly what user sees)
+- Improve logging for multi-capture process
 
 ### v1.0.0 (2026-02-01)
 - Initial release
