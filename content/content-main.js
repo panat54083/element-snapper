@@ -1,11 +1,11 @@
 /**
- * Element Screenshot Capture - Main Content Script
+ * Element Snapper - Main Content Script
  * Entry point for content script functionality
  * Manages global state and message handling
  */
 
 // Initialize on page load
-console.log('Element Screenshot Capture: Content script loaded');
+console.log('Element Snapper: Content script loaded');
 
 // Store scrollbar state for multi-capture
 let scrollbarState = null;

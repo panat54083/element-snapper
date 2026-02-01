@@ -1,5 +1,5 @@
 /**
- * Element Screenshot Capture - Popup Controller
+ * Element Snapper - Popup Controller
  * Manages popup UI state and communicates with content script
  */
 

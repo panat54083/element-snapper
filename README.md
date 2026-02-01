@@ -21,7 +21,7 @@ A professional Chrome extension that captures pixel-perfect screenshots of any w
 2. Open Chrome and navigate to `chrome://extensions`
 3. Enable "Developer mode" (toggle in top right)
 4. Click "Load unpacked"
-5. Select the `element-screenshot-capture` directory
+5. Select the `element-snapper` directory
 6. Extension icon should appear in toolbar
 
 ## Usage
@@ -162,7 +162,7 @@ When debug mode is enabled:
 ### File Structure
 
 ```
-element-screenshot-capture/
+element-snapper/
 ├── manifest.json              # Manifest V3 configuration
 ├── popup/
 │   ├── popup.html            # Popup UI structure
@@ -253,7 +253,7 @@ element-screenshot-capture/
 
 ```
 1. Navigate to chrome://extensions
-2. Find "Element Screenshot Capture"
+2. Find "Element Snapper"
 3. Click "service worker" link
 4. Service worker console opens in new window
 ```
@@ -281,7 +281,7 @@ The extension follows a modular architecture:
 
 1. Edit files as needed
 2. Go to `chrome://extensions`
-3. Click refresh icon for "Element Screenshot Capture"
+3. Click refresh icon for "Element Snapper"
 4. Test changes
 
 ### Color System

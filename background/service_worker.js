@@ -1,5 +1,5 @@
 /**
- * Element Screenshot Capture - Service Worker
+ * Element Snapper - Service Worker
  * Handles screenshot capture, cropping, and download
  * Uses capture+crop technique with DPR-aware math
  */
