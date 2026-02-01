@@ -126,6 +126,8 @@ captureBtn.addEventListener('click', async () => {
     try {
       updateUI('selecting', 'Click element');
       await sendToContentScript({ action: 'startSelection' });
+      // Close popup after starting selection
+      window.close();
     } catch (error) {
       updateUI('error', error.message);
     }
