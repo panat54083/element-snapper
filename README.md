@@ -1,4 +1,4 @@
-# Element Screenshot Capture
+# Element Snapper
 
 A professional Chrome extension that captures pixel-perfect screenshots of any webpage element using advanced capture+crop technique with device pixel ratio support.
 
@@ -52,6 +52,7 @@ Popup ──> Content Script ──> Service Worker ──> Download
 ```
 
 **Message Flow:**
+
 1. Popup sends "startSelection" to content script
 2. Content script enables element highlighting
 3. User clicks element
@@ -84,6 +85,7 @@ For elements larger than the viewport, the extension uses a sophisticated multi-
 #### Algorithm Overview
 
 1. **Tile Grid Calculation**: Divide element into viewport-sized tiles
+
    ```javascript
    const tilesX = Math.ceil(elementWidth / viewportWidth);
    const tilesY = Math.ceil(elementHeight / viewportHeight);
@@ -96,9 +98,10 @@ For elements larger than the viewport, the extension uses a sophisticated multi-
    - Draw onto final canvas at correct position
 
 3. **Coordinate Conversion**: Handle document boundaries correctly
+
    ```javascript
    // Target scroll position for this tile
-   const targetScrollX = elementAbsX + (tileX * viewportWidth);
+   const targetScrollX = elementAbsX + tileX * viewportWidth;
 
    // Actual scroll (may differ at document boundaries)
    const actualScrollX = getActualScrollPosition();
@@ -116,6 +119,7 @@ For elements larger than the viewport, the extension uses a sophisticated multi-
 When capturing near page edges, the browser can't scroll to the target position, causing potential overlap if not handled correctly.
 
 **Example:**
+
 ```
 Element: 2400px wide, Page: 1700px wide, Viewport: 1000px
 Max scroll: 700px (1700 - 1000)
@@ -150,6 +154,7 @@ This ensures each tile extracts a unique portion of the element, even when scrol
 #### Debug Mode Visualization
 
 When debug mode is enabled:
+
 - **Red border**: Shows the full element being captured (static)
 - **Green border**: Shows the current tile being captured (moves with each tile)
 - Helps visualize the multi-tile stitching process
@@ -177,19 +182,23 @@ element-screenshot-capture/
 ## Edge Cases
 
 ### Cross-Origin Iframes
+
 - Cannot access iframe internals due to browser security
 - Extension captures the iframe element itself
 - Console warning is logged
 
 ### Fixed/Sticky Elements
+
 - Element is scrolled into view before capture
 - Works correctly with `position: fixed` and `position: sticky`
 
 ### Elements Outside Viewport
+
 - Automatically scrolled into view with smooth behavior
 - Small delay ensures scroll completes before capture
 
 ### High DPR Displays
+
 - Correctly handles Retina (2x), 4K (3x+) displays
 - Canvas operations use physical pixels throughout
 - Screenshots are high resolution, never blurry
@@ -233,6 +242,7 @@ element-screenshot-capture/
 ### Debugging
 
 **Content Script Console:**
+
 ```
 1. Open page where extension is active
 2. Press F12 to open DevTools
@@ -240,6 +250,7 @@ element-screenshot-capture/
 ```
 
 **Service Worker Console:**
+
 ```
 1. Navigate to chrome://extensions
 2. Find "Element Screenshot Capture"
@@ -248,6 +259,7 @@ element-screenshot-capture/
 ```
 
 **Popup Console:**
+
 ```
 1. Right-click extension icon
 2. Select "Inspect popup"
@@ -284,23 +296,28 @@ The extension uses a consistent professional color palette:
 ## Troubleshooting
 
 ### Extension Icon Not Showing
+
 - Ensure extension is enabled in `chrome://extensions`
 - Check for manifest errors in extension details
 
 ### "Please refresh the page" Error
+
 - The page was loaded before the extension
 - Refresh the page (F5) and try again
 
 ### Screenshots Are Blurry
+
 - This should not happen with DPR-aware cropping
 - If it does, please report as a bug
 
 ### Element Not Capturing
+
 - Ensure element is visible in viewport
 - Check browser console for errors
 - Try clicking element again
 
 ### Download Fails
+
 - Check Chrome download permissions
 - Ensure sufficient disk space
 - Check Downloads folder for saved file
@@ -321,6 +338,7 @@ MIT License - feel free to use this extension for any purpose.
 ## Changelog
 
 ### v1.1.0 (2026-02-01)
+
 - Add full element capture with multi-tile stitching
 - Fix tile overlap bug at document boundaries
 - Add debug mode with visual tile borders (red/green)
@@ -328,6 +346,7 @@ MIT License - feel free to use this extension for any purpose.
 - Improve logging for multi-capture process
 
 ### v1.0.0 (2026-02-01)
+
 - Initial release
 - Basic element capture functionality
 - PNG/JPEG format support

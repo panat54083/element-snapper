@@ -1,16 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Element Screenshot Capture",
+  "name": "Element Snapper",
   "version": "1.0.0",
   "description": "Capture precise screenshots of any element with smart cropping and device pixel ratio support",
 
-  "permissions": [
-    "activeTab",
-    "tabs",
-    "scripting",
-    "downloads",
-    "storage"
-  ],
+  "permissions": ["activeTab", "tabs", "scripting", "downloads", "storage"],
 
   "action": {
     "default_popup": "popup/popup.html",
