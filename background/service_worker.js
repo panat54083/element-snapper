@@ -98,8 +98,15 @@ async function captureFullElement(data, tabId, format, quality) {
     // Hide scrollbars before capturing tiles
     await chrome.tabs.sendMessage(tabId, { action: 'hideScrollbars' });
 
+    // Track cumulative Y position to avoid rounding gaps between rows
+    let cumulativeY = 0;
+
     // Capture each tile
     for (let tileY = 0; tileY < tilesY; tileY++) {
+      // Calculate row height for this row (needed for cumulative positioning)
+      const rowHeight = Math.min(viewport.height, rect.height - (tileY * viewport.height));
+      const rowHeightPhysical = Math.ceil(rowHeight * dpr);
+
       for (let tileX = 0; tileX < tilesX; tileX++) {
         // Calculate scroll position for this tile
         const targetScrollX = elementAbsX + (tileX * viewport.width);
@@ -165,15 +172,20 @@ async function captureFullElement(data, tabId, format, quality) {
         const viewportOffsetX = regionAbsX - actualScrollX;
         const viewportOffsetY = regionAbsY - actualScrollY;
 
-        // Source region (physical pixels)
-        const sx = Math.round(viewportOffsetX * dpr);
-        const sy = Math.round(viewportOffsetY * dpr);
-        const sWidth = Math.round(visibleWidth * dpr);
-        const sHeight = Math.round(visibleHeight * dpr);
+        // Source region (physical pixels) - use floor to avoid gaps
+        const sx = Math.floor(viewportOffsetX * dpr);
+        const sy = Math.floor(viewportOffsetY * dpr);
+        const sWidth = Math.ceil(visibleWidth * dpr);
+        const sHeight = Math.ceil(visibleHeight * dpr);
 
         // Destination position on final canvas (physical pixels)
-        const dx = Math.round(tileX * viewport.width * dpr);
-        const dy = Math.round(tileY * viewport.height * dpr);
+        // Use cumulative Y to avoid rounding gaps between rows
+        const dx = Math.floor(tileX * viewport.width * dpr);
+        const dy = cumulativeY;
+
+        // Destination size - use exact tile size to avoid gaps
+        const dWidth = Math.ceil(visibleWidth * dpr);
+        const dHeight = Math.ceil(visibleHeight * dpr);
 
         // Validate source region is within captured image bounds
         if (sx < 0 || sy < 0 || sx + sWidth > imageBitmap.width || sy + sHeight > imageBitmap.height) {
@@ -188,7 +200,7 @@ async function captureFullElement(data, tabId, format, quality) {
             finalCtx.drawImage(
               imageBitmap,
               clampedSX, clampedSY, clampedWidth, clampedHeight,
-              dx, dy, clampedWidth, clampedHeight
+              dx, dy, dWidth, dHeight
             );
           }
         } else {
@@ -196,7 +208,7 @@ async function captureFullElement(data, tabId, format, quality) {
           finalCtx.drawImage(
             imageBitmap,
             sx, sy, sWidth, sHeight,
-            dx, dy, sWidth, sHeight
+            dx, dy, dWidth, dHeight
           );
         }
 
@@ -205,6 +217,9 @@ async function captureFullElement(data, tabId, format, quality) {
 
         console.log(`Tile (${tileX},${tileY}): extracted (${sx},${sy},${sWidth}×${sHeight}) → canvas (${dx},${dy})`);
       }
+
+      // After completing a row, update cumulative Y position
+      cumulativeY += rowHeightPhysical;
     }
 
     // Convert final canvas to blob

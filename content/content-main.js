@@ -53,11 +53,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         window.scrollTo({
           left: message.x,
           top: message.y,
-          behavior: 'smooth'  // Smooth scroll animation
+          behavior: 'instant'  // Instant scroll for precise positioning
         });
 
-        // Wait for smooth scroll animation to complete and layout to stabilize
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // Wait for rendering to complete using multiple RAF cycles
+        await new Promise(resolve => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              // Double RAF ensures rendering is complete
+              setTimeout(resolve, 100);
+            });
+          });
+        });
 
         // Return actual scroll position (may differ from target if at document bounds)
         const actualScroll = getScrollOffsets();
