@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Element Screenshot</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Primary action button -->
+    <button class="btn" id="captureBtn" data-state="idle">
+      <span class="btn-text">Capture</span>
+    </button>
+
+    <!-- Status indicator -->
+    <div class="status">
+      <span class="status-dot" id="statusDot"></span>
+      <span class="status-text" id="statusText">Ready</span>
+    </div>
+
+    <!-- Settings (collapsible) -->
+    <details class="settings">
+      <summary class="settings-header">Settings</summary>
+      <div class="settings-content">
+        <div class="setting-row">
+          <label>Format</label>
+          <select id="formatSelect" class="select">
+            <option value="png" selected>PNG</option>
+            <option value="jpg">JPEG</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label>Quality</label>
+          <div class="slider-group">
+            <input type="range" id="qualityInput" min="1" max="100" value="95" class="slider">
+            <span id="qualityValue" class="slider-value">95</span>
+          </div>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

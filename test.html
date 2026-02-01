@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Element Screenshot Capture - Test Page</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 40px;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      margin-bottom: 30px;
+      color: #111827;
+    }
+
+    .test-section {
+      margin-bottom: 40px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .test-section h2 {
+      margin-bottom: 15px;
+      color: #2563eb;
+      font-size: 18px;
+    }
+
+    .test-element {
+      padding: 20px;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: white;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-weight: 600;
+    }
+
+    .small-element {
+      display: inline-block;
+      padding: 8px 16px;
+      background: #10b981;
+      color: white;
+      border-radius: 4px;
+      margin: 5px;
+    }
+
+    .fixed-element {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 10px 15px;
+      background: #ef4444;
+      color: white;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }
+
+    .scrollable {
+      height: 200px;
+      overflow-y: scroll;
+      border: 2px solid #e5e7eb;
+      padding: 15px;
+      margin: 10px 0;
+      background: white;
+    }
+
+    .wide-element {
+      width: 150vw;
+      padding: 20px;
+      background: #f59e0b;
+      color: white;
+      border-radius: 8px;
+    }
+
+    img {
+      max-width: 300px;
+      border-radius: 8px;
+      margin: 10px 0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+    }
+
+    table th, table td {
+      padding: 12px;
+      border: 1px solid #e5e7eb;
+      text-align: left;
+    }
+
+    table th {
+      background: #f9fafb;
+      font-weight: 600;
+      color: #111827;
+    }
+
+    .iframe-container {
+      margin: 10px 0;
+    }
+
+    iframe {
+      width: 100%;
+      height: 300px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+    }
+
+    .grid-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .card {
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .card h3 {
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="fixed-element">Fixed Element</div>
+
+  <h1>Element Screenshot Capture - Test Page</h1>
+
+  <div class="test-section">
+    <h2>1. Basic Elements</h2>
+    <div class="test-element" id="test-basic">
+      Basic Element with ID
+    </div>
+    <div class="test-element">
+      Element without ID
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>2. Small Elements</h2>
+    <div>
+      <span class="small-element">Small 1</span>
+      <span class="small-element">Small 2</span>
+      <span class="small-element">Small 3</span>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>3. Scrollable Container</h2>
+    <div class="scrollable">
+      <p>Scroll down to find the element...</p>
+      <p style="margin-top: 100px; padding: 15px; background: #2563eb; color: white; border-radius: 4px;">
+        Target Element Inside Scroll Container
+      </p>
+      <p style="margin-top: 100px;">More content below...</p>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>4. Wide Element (Horizontal Scroll)</h2>
+    <div class="wide-element">
+      This element is wider than the viewport - scroll right to see it all
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>5. Image Element</h2>
+    <img src="https://via.placeholder.com/300x200/2563eb/ffffff?text=Test+Image" alt="Test Image">
+  </div>
+
+  <div class="test-section">
+    <h2>6. Table Element</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Value</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Item 1</td>
+          <td>100</td>
+          <td>Active</td>
+        </tr>
+        <tr>
+          <td>Item 2</td>
+          <td>200</td>
+          <td>Pending</td>
+        </tr>
+        <tr>
+          <td>Item 3</td>
+          <td>300</td>
+          <td>Complete</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="test-section">
+    <h2>7. Cross-Origin Iframe</h2>
+    <div class="iframe-container">
+      <iframe src="https://example.com" title="Cross-origin iframe test"></iframe>
+      <p style="margin-top: 10px; font-size: 14px; color: #6b7280;">
+        Note: Cross-origin iframe - will capture frame element only
+      </p>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>8. Complex Nested Structure</h2>
+    <div class="grid-cards">
+      <div class="card" style="background: #dbeafe;">
+        <h3 style="color: #1e40af;">Card 1</h3>
+        <p style="color: #1e40af;">Nested content in a grid layout</p>
+      </div>
+      <div class="card" style="background: #fce7f3;">
+        <h3 style="color: #9f1239;">Card 2</h3>
+        <p style="color: #9f1239;">Another nested element</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>9. Text Content</h2>
+    <p style="padding: 15px; background: #f9fafb; border-radius: 4px; line-height: 1.6;">
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+    </p>
+  </div>
+
+  <div style="height: 100vh; display: flex; align-items: center; justify-content: center; background: white; margin: 40px 0; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <div class="test-element" style="margin: 0;">
+      Element Far Below (Requires Scroll)
+    </div>
+  </div>
+
+  <div class="test-section">
+    <h2>10. Button Elements</h2>
+    <button style="padding: 12px 24px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer;">
+      Click Me
+    </button>
+    <button style="padding: 12px 24px; background: white; color: #2563eb; border: 2px solid #2563eb; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; margin-left: 10px;">
+      Outlined Button
+    </button>
+  </div>
+</body>
+</html>
