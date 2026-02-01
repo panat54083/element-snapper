@@ -93,8 +93,14 @@ class ElementSelector {
     // Stop selection mode
     this.stop();
 
-    // Scroll element into view
-    await scrollIntoView(element);
+    // Only scroll into view if full capture mode is enabled
+    // For regular capture, we want exactly what the user sees
+    const settings = await chrome.storage.local.get(['fullCapture']);
+    const fullCapture = settings.fullCapture || false;
+
+    if (fullCapture) {
+      await scrollIntoView(element);
+    }
 
     // Get element position data
     const rect = getElementRect(element);
