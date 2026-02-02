@@ -74,11 +74,23 @@ function updateUI(state, message) {
  */
 async function sendToContentScript(message) {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-
   try {
+    // Try to contact existing content script first
+    try {
+      await chrome.tabs.sendMessage(tab.id, { action: 'ping' });
+    } catch (e) {
+      // If no content script is present, inject the scripts into the active tab.
+      // This uses the user's gesture (popup click) and the `activeTab` + `scripting` permission.
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['content/utils.js', 'content/element_selector.js', 'content/content-main.js']
+      });
+    }
+
+    // Now send the original message
     return await chrome.tabs.sendMessage(tab.id, message);
   } catch (error) {
-    console.error('Failed to send message:', error);
+    console.error('Failed to send message to content script:', error);
     throw new Error('Please refresh the page');
   }
 }

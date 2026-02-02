@@ -18,19 +18,6 @@
   "background": {
     "service_worker": "background/service_worker.js"
   },
-
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": [
-        "content/utils.js",
-        "content/element_selector.js",
-        "content/content-main.js"
-      ],
-      "run_at": "document_end"
-    }
-  ],
-
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
