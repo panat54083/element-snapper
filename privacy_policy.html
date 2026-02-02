@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Privacy Policy — Element Snapper</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;color:#111;margin:24px}
+    h1,h2{color:#111}
+    .meta{color:#555;font-size:0.95rem;margin-bottom:8px}
+    section{margin-top:18px}
+    code{background:#f3f4f6;padding:2px 6px;border-radius:4px}
+  </style>
+</head>
+<body>
+  <h1>Privacy Policy</h1>
+  <div class="meta">Element Snapper — Last updated: 2026-02-02</div>
+
+  <p>Element Snapper is a browser extension that enables users to capture screenshots of page elements, the visible viewport, or full pages. This policy explains what data (if any) the extension accesses, how it is used, and how users can control or remove it.</p>
+
+  <h2>Summary</h2>
+  <p>All processing is performed locally in the user's browser. Element Snapper does not collect, transmit, or store user data on external servers. The extension only reads minimal page metadata necessary to perform captures and to generate descriptive filenames.</p>
+
+  <h2>What data the extension accesses</h2>
+  <ul>
+    <li>DOM geometry and metadata: element bounding rectangles, page/viewport dimensions, scroll offsets, and a short snippet of element text (up to ~50 characters) used only for optional filename metadata.</li>
+    <li>Screenshots: image data is generated locally in the browser and either saved to the user's Downloads folder or copied to the clipboard, depending on the user's choice.</li>
+  </ul>
+
+  <h2>Why this access is needed</h2>
+  <p>The extension needs to read element geometry and viewport information to:</p>
+  <ul>
+    <li>accurately crop screenshots to the selected element (including on high-DPI displays),</li>
+    <li>perform multi-tile stitching for elements larger than the viewport, and</li>
+    <li>optionally include a short, user-friendly filename derived from the element's tag/id/text.</li>
+  </ul>
+
+  <h2>No external transmission</h2>
+  <p>Element Snapper does not make network requests to third-party servers for capture, processing, analytics, or telemetry. No screenshots, DOM content, or metadata are uploaded or shared externally by the extension.</p>
+
+  <h2>Permissions</h2>
+  <p>The extension requests only the permissions necessary to function:</p>
+  <ul>
+    <li><code>activeTab</code>, <code>tabs</code>: to capture the visible tab and to identify the active tab when the user initiates a capture.</li>
+    <li><code>downloads</code>: to save screenshots to the user's Downloads folder when the user chooses to download.</li>
+    <li><code>storage</code>: to persist user settings (format, quality, delay, full-capture, debug, clipboard) locally in the browser.</li>
+    <li><code>clipboardWrite</code>: to copy image data to the system clipboard when the user enables that option.</li>
+    <li>Content scripts are declared for <code>&lt;all_urls&gt;</code> so users can visually select elements on pages; these scripts only run to provide selection UI and to measure/scroll elements.</li>
+  </ul>
+
+  <h2>Cross-origin and restricted pages</h2>
+  <p>The extension cannot access content inside cross-origin iframes due to browser security restrictions; in such cases the iframe element itself will be captured. The extension also cannot run on browser-internal pages such as <code>chrome://</code> pages, the Chrome Web Store, or certain privileged URLs.</p>
+
+  <h2>User control</h2>
+  <p>Users may disable or uninstall the extension at any time via Chrome's Extensions page. Local settings are stored in Chrome's extension storage and will be removed when the extension is uninstalled. Saved screenshots are written to the user's device (Downloads folder) or copied to the clipboard; the extension does not retain copies on external servers.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>We may update this privacy policy to reflect changes in the extension. The "Last updated" date at the top of this page will indicate when changes were made.</p>
+
+  <h2>Contact</h2>
+  <p>For questions or privacy concerns, contact: <strong>REPLACE_WITH_YOUR_CONTACT_EMAIL</strong></p>
+  <p>To host this policy for the Chrome Web Store, upload this file to a publicly reachable URL (for example on your website or GitHub Pages) and provide that URL in the Web Store privacy policy field.</p>
+
+  <footer style="margin-top:28px;color:#666;font-size:0.95rem">© Element Snapper — Local processing only</footer>
+</body>
+</html>
