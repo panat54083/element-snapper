@@ -5,12 +5,13 @@ A professional Chrome extension that captures pixel-perfect screenshots of any w
 ## Features
 
 - **Pixel-Perfect Capture**: Accurate element screenshots with DPR-aware cropping
-- **Full Element Capture**: Multi-tile stitching for elements larger than viewport
+- **Full Element Capture**: Multi-tile stitching for elements larger than viewport with smooth scroll animations
 - **Quick Actions**: One-click viewport and full page screenshot buttons
 - **Clipboard Support**: Copy screenshots directly to clipboard instead of downloading
-- **Delayed Capture**: Configurable countdown timer (0-10s) for capturing hover states and dynamic content
-- **Professional UI**: Clean, minimal design with consistent visual language
-- **Format Options**: Save as PNG (lossless) or JPEG (with quality control)
+- **Capture Notifications**: Visual feedback for successful captures and errors
+- **Delayed Capture**: Configurable countdown timer (0-10s) with minimal circular badge for capturing hover states and dynamic content
+- **Professional UI**: Clean, modern dark mode design with compact switch layout
+- **Format Options**: Save as PNG (lossless) or JPEG (with quality control 1-100%)
 - **Smart Scrolling**: Automatically scrolls elements into view before capture (full mode only)
 - **Debug Mode**: Visual borders showing capture process in real-time
 - **Edge Case Handling**: Handles fixed elements, scrollable containers, and cross-origin iframes
@@ -18,7 +19,11 @@ A professional Chrome extension that captures pixel-perfect screenshots of any w
 
 ## Installation
 
-### Load as Unpacked Extension
+### From Chrome Web Store
+
+_Coming soon - Extension will be published to Chrome Web Store_
+
+### Load as Unpacked Extension (For Development)
 
 1. Clone or download this repository
 2. Open Chrome and navigate to `chrome://extensions`
@@ -48,7 +53,7 @@ A professional Chrome extension that captures pixel-perfect screenshots of any w
 - **Quality**: Adjust JPEG compression quality (1-100, default 95)
 - **Delay**: Set countdown timer before capture (0-10 seconds, default 0)
   - Useful for capturing hover states, dropdown menus, tooltips, and dynamic UI elements
-  - Shows full-screen countdown overlay with animated number
+  - Shows minimal circular badge countdown in top-right corner with animated number
 - **Full Page**: Enable multi-tile stitching for elements larger than viewport
 - **Debug**: Show borders during multi-tile capture process
 - **Clipboard**: Copy screenshots to clipboard instead of downloading
@@ -351,32 +356,32 @@ MIT License - feel free to use this extension for any purpose.
 
 ## Changelog
 
-### v1.2.0 (2026-02-02)
+### v1.1.0 (2026-02-02)
 
-- **New**: Add quick action buttons for viewport and full page capture
+- **New**: Quick action buttons for viewport and full page capture
 - **New**: Copy to clipboard option - skip downloads and copy directly to system clipboard
 - **New**: Delayed capture with countdown timer (0-10 seconds)
-  - Full-screen countdown overlay with animated number
+  - Minimal circular badge countdown in top-right corner
   - Useful for capturing hover states, menus, and dynamic content
-- **Enhancement**: All three capture modes support delay and clipboard features
-
-### v1.1.0 (2026-02-01)
-
-- Add full element capture with multi-tile stitching
-- Fix tile overlap bug at document boundaries
-- Add debug mode with visual tile borders (red/green)
-- Remove auto-scroll in regular mode (capture exactly what user sees)
-- Improve logging for multi-capture process
+- **New**: Capture notifications with success/error feedback
+- **Enhancement**: All three capture modes (element, viewport, full page) support delay and clipboard features
+- **Enhancement**: Improved multi-tile capture with smooth scroll animation
+- **UI**: Redesigned settings panel with compact switch layout
+- **UI**: Conditional quality slider (only shown for JPEG format)
+- **UI**: Swapped clipboard and debug mode settings order for better UX
+- **Fix**: Resolved clipboard copy failure for viewport and full page capture
+- **Fix**: Black line artifacts when capturing more than 2 tiles (scroll behavior optimization)
 
 ### v1.0.0 (2026-02-01)
 
-- Initial release
-- Basic element capture functionality
-- PNG/JPEG format support
-- DPR-aware cropping
-- Professional minimal UI
-- Cross-origin iframe detection
-- Comprehensive test page
+- Initial release with element selection capture
+- PNG/JPEG format support with quality control
+- DPR-aware cropping for high-DPI displays
+- Full element capture with multi-tile stitching
+- Debug mode with visual tile borders (red/green)
+- Professional dark mode UI with animated controls
+- Cross-origin iframe detection and handling
+- Comprehensive test pages and documentation
 
 ## Credits
 
