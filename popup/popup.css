@@ -459,3 +459,42 @@ body {
 .switch-input:checked + .toggle-switch::after {
   transform: translateX(18px);
 }
+
+/* Footer */
+.footer {
+  margin-top: auto;
+}
+
+.bmc-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 13px;
+  transition: var(--transition);
+}
+
+.bmc-btn:hover {
+  border-color: #ffdd00;
+  background: rgba(255, 221, 0, 0.1);
+  color: #ffdd00;
+  transform: translateY(-1px);
+}
+
+.bmc-btn:active {
+  transform: translateY(0);
+}
+
+.bmc-btn svg {
+  width: 18px;
+  height: 18px;
+}
