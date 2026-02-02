@@ -152,6 +152,9 @@ class ElementSelector {
       });
 
       if (response.success) {
+        if (response.action === 'download') {
+          showNotification('Screenshot saved to downloads', 'success');
+        }
         chrome.runtime.sendMessage({ action: 'captureSuccess' });
       } else {
         chrome.runtime.sendMessage({

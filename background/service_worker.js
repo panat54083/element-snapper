@@ -80,11 +80,11 @@ async function handleViewportOrPageCapture(data, tabId) {
     // Save to downloads or copy to clipboard based on settings
     if (copyToClipboard) {
       await copyImageToClipboard(captureBlob);
+      return { success: true, action: 'copy' };
     } else {
       await downloadImage(captureBlob, filename);
+      return { success: true, action: 'download' };
     }
-
-    return { success: true };
   } catch (error) {
     console.error('Capture failed:', error);
     return { success: false, error: error.message };
@@ -294,14 +294,15 @@ async function handleElementCapture(data, tabId) {
     }
 
     // Save to downloads or copy to clipboard based on settings
+    // Save to downloads or copy to clipboard based on settings
     if (copyToClipboard) {
       await copyImageToClipboard(croppedBlob);
+      return { success: true, action: 'copy' };
     } else {
       const filename = generateFilename(data.elementInfo, outputFormat);
       await downloadImage(croppedBlob, filename);
+      return { success: true, action: 'download' };
     }
-
-    return { success: true };
   } catch (error) {
     console.error('Capture failed:', error);
     return { success: false, error: error.message };
@@ -566,8 +567,8 @@ async function cropImageToElement(dataUrl, data, format, quality) {
 
     // Validate source region is within image bounds
     if (sx < 0 || sy < 0 ||
-        sx + sWidth > imageBitmap.width ||
-        sy + sHeight > imageBitmap.height) {
+      sx + sWidth > imageBitmap.width ||
+      sy + sHeight > imageBitmap.height) {
       console.warn('Element partially outside viewport, clamping coordinates');
 
       // Clamp to image bounds
@@ -625,8 +626,8 @@ function generateFilename(elementInfo, format) {
 
   // Use element ID or tag name for filename
   const elementName = elementInfo.id ||
-                     elementInfo.tagName.toLowerCase() ||
-                     'element';
+    elementInfo.tagName.toLowerCase() ||
+    'element';
 
   // Sanitize element name
   const safeName = elementName

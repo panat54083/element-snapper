@@ -54,6 +54,9 @@ async function handleViewportCapture() {
     });
 
     if (response.success) {
+      if (response.action === 'download') {
+        showNotification('Screenshot saved to downloads', 'success');
+      }
       chrome.runtime.sendMessage({ action: 'captureSuccess' });
     } else {
       chrome.runtime.sendMessage({
@@ -89,6 +92,7 @@ async function handleClipboardCopy(dataUrl) {
     ]);
 
     console.log('Image copied to clipboard successfully');
+    showNotification('Copied to clipboard', 'success');
   } catch (error) {
     console.error('Failed to copy to clipboard:', error);
     throw error;
@@ -143,6 +147,9 @@ async function handleFullPageCapture() {
     });
 
     if (response.success) {
+      if (response.action === 'download') {
+        showNotification('Screenshot saved to downloads', 'success');
+      }
       chrome.runtime.sendMessage({ action: 'captureSuccess' });
     } else {
       chrome.runtime.sendMessage({
