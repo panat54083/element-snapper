@@ -356,7 +356,7 @@ MIT License - feel free to use this extension for any purpose.
 
 ## Changelog
 
-### v1.1.0 (2026-02-02)
+### v1.2.0 (2026-02-02)
 
 - **New**: Quick action buttons for viewport and full page capture
 - **New**: Copy to clipboard option - skip downloads and copy directly to system clipboard
@@ -366,6 +366,9 @@ MIT License - feel free to use this extension for any purpose.
 - **New**: Capture notifications with success/error feedback
 - **Enhancement**: All three capture modes (element, viewport, full page) support delay and clipboard features
 - **Enhancement**: Improved multi-tile capture with smooth scroll animation
+
+### v1.1.0 (2026-02-15)
+
 - **UI**: Redesigned settings panel with compact switch layout
 - **UI**: Conditional quality slider (only shown for JPEG format)
 - **UI**: Swapped clipboard and debug mode settings order for better UX
