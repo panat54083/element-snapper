@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Capture precise screenshots of any element with smart cropping and device pixel ratio support",
 
-  "permissions": ["activeTab", "tabs", "scripting", "downloads", "storage"],
+  "permissions": ["activeTab", "tabs", "scripting", "downloads", "storage", "clipboardWrite"],
 
   "action": {
     "default_popup": "popup/popup.html",

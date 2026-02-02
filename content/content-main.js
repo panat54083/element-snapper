@@ -61,6 +61,31 @@ async function handleViewportCapture() {
 }
 
 /**
+ * Handle clipboard copy
+ * Copies image data URL to clipboard
+ * @param {string} dataUrl - Image data URL
+ */
+async function handleClipboardCopy(dataUrl) {
+  try {
+    // Convert data URL to blob
+    const response = await fetch(dataUrl);
+    const blob = await response.blob();
+
+    // Use Clipboard API to write image
+    await navigator.clipboard.write([
+      new ClipboardItem({
+        [blob.type]: blob
+      })
+    ]);
+
+    console.log('Image copied to clipboard successfully');
+  } catch (error) {
+    console.error('Failed to copy to clipboard:', error);
+    throw error;
+  }
+}
+
+/**
  * Handle full page capture
  * Captures the entire scrollable page with auto-scroll
  */
@@ -196,6 +221,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'captureFullPage':
         // Capture full page with scrolling
         await handleFullPageCapture();
+        sendResponse({ success: true });
+        break;
+
+      case 'copyToClipboard':
+        // Copy image to clipboard
+        await handleClipboardCopy(message.dataUrl);
         sendResponse({ success: true });
         break;
 

@@ -35,9 +35,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 async function handleViewportOrPageCapture(data, tabId) {
   try {
     // Load settings
-    const settings = await chrome.storage.local.get(['format', 'quality']);
+    const settings = await chrome.storage.local.get(['format', 'quality', 'copyToClipboard']);
     const outputFormat = settings.format || 'png';
     const outputQuality = settings.quality || 95;
+    const copyToClipboard = settings.copyToClipboard || false;
 
     let captureBlob;
     let filename;
@@ -76,8 +77,12 @@ async function handleViewportOrPageCapture(data, tabId) {
       throw new Error('Invalid capture mode');
     }
 
-    // Save to downloads
-    await downloadImage(captureBlob, filename);
+    // Save to downloads or copy to clipboard based on settings
+    if (copyToClipboard) {
+      await copyImageToClipboard(captureBlob);
+    } else {
+      await downloadImage(captureBlob, filename);
+    }
 
     return { success: true };
   } catch (error) {
@@ -267,10 +272,11 @@ function generateViewportFilename(mode, format) {
 async function handleElementCapture(data, tabId) {
   try {
     // Load settings
-    const settings = await chrome.storage.local.get(['format', 'quality', 'fullCapture']);
+    const settings = await chrome.storage.local.get(['format', 'quality', 'fullCapture', 'copyToClipboard']);
     const outputFormat = settings.format || 'png';
     const outputQuality = settings.quality || 95;
     const fullCapture = settings.fullCapture || false;
+    const copyToClipboard = settings.copyToClipboard || false;
 
     // Determine if multi-capture is needed
     const needsMultiCapture = fullCapture && (
@@ -287,9 +293,13 @@ async function handleElementCapture(data, tabId) {
       croppedBlob = await cropImageToElement(dataUrl, data, outputFormat, outputQuality);
     }
 
-    // Save to downloads
-    const filename = generateFilename(data.elementInfo, outputFormat);
-    await downloadImage(croppedBlob, filename);
+    // Save to downloads or copy to clipboard based on settings
+    if (copyToClipboard) {
+      await copyImageToClipboard(croppedBlob);
+    } else {
+      const filename = generateFilename(data.elementInfo, outputFormat);
+      await downloadImage(croppedBlob, filename);
+    }
 
     return { success: true };
   } catch (error) {
@@ -646,6 +656,38 @@ async function blobToDataURL(blob) {
   const base64 = btoa(binary);
 
   return `data:${blob.type};base64,${base64}`;
+}
+
+/**
+ * Copy image blob to clipboard
+ * Uses Clipboard API to write image data
+ * @param {Blob} blob - Image blob
+ * @returns {Promise<void>}
+ */
+async function copyImageToClipboard(blob) {
+  try {
+    // Service workers don't have direct access to navigator.clipboard
+    // We need to send the blob to the content script to copy it
+    // Get the active tab
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    if (!tab) {
+      throw new Error('No active tab found');
+    }
+
+    // Convert blob to data URL
+    const dataUrl = await blobToDataURL(blob);
+
+    // Send to content script to copy to clipboard
+    await chrome.tabs.sendMessage(tab.id, {
+      action: 'copyToClipboard',
+      dataUrl: dataUrl
+    });
+
+    console.log('Image copied to clipboard');
+  } catch (error) {
+    throw new Error(`Clipboard copy failed: ${error.message}`);
+  }
 }
 
 /**

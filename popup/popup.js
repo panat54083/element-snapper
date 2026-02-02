@@ -16,6 +16,7 @@ const qualityInput = document.getElementById('qualityInput');
 const qualityValue = document.getElementById('qualityValue');
 const fullCaptureCheckbox = document.getElementById('fullCaptureCheckbox');
 const debugModeCheckbox = document.getElementById('debugModeCheckbox');
+const clipboardCheckbox = document.getElementById('clipboardCheckbox');
 const formatRadios = document.querySelectorAll('input[name="format"]');
 
 // Current state
@@ -84,7 +85,7 @@ async function sendToContentScript(message) {
  * Load saved settings from storage
  */
 async function loadSettings() {
-  const settings = await chrome.storage.local.get(['format', 'quality', 'fullCapture', 'debugMode']);
+  const settings = await chrome.storage.local.get(['format', 'quality', 'fullCapture', 'debugMode', 'copyToClipboard']);
 
   // Format (Radio buttons)
   if (settings.format) {
@@ -105,6 +106,10 @@ async function loadSettings() {
 
   if (settings.debugMode !== undefined) {
     debugModeCheckbox.checked = settings.debugMode;
+  }
+
+  if (settings.copyToClipboard !== undefined) {
+    clipboardCheckbox.checked = settings.copyToClipboard;
   }
 }
 
@@ -148,7 +153,8 @@ async function saveSettings() {
     format: selectedFormat,
     quality: parseInt(qualityInput.value),
     fullCapture: fullCaptureCheckbox.checked,
-    debugMode: debugModeCheckbox.checked
+    debugMode: debugModeCheckbox.checked,
+    copyToClipboard: clipboardCheckbox.checked
   });
 }
 
@@ -212,6 +218,7 @@ qualityInput.addEventListener('change', saveSettings);
 // Settings - Checkboxes
 fullCaptureCheckbox.addEventListener('change', saveSettings);
 debugModeCheckbox.addEventListener('change', saveSettings);
+clipboardCheckbox.addEventListener('change', saveSettings);
 
 // Action Buttons - Viewport Capture
 captureViewportBtn.addEventListener('click', async () => {
