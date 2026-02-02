@@ -11,6 +11,110 @@ console.log('Element Snapper: Content script loaded');
 let scrollbarState = null;
 
 /**
+ * Handle viewport capture
+ * Captures the current visible viewport without element selection
+ */
+async function handleViewportCapture() {
+  try {
+    // Notify popup that capture started
+    chrome.runtime.sendMessage({ action: 'captureStarted' });
+
+    // Get current viewport and scroll information
+    const scroll = getScrollOffsets();
+    const docDims = getDocumentDimensions();
+    const dpr = window.devicePixelRatio || 1;
+
+    // Prepare capture data for viewport
+    const captureData = {
+      captureMode: 'viewport',
+      scroll: scroll,
+      documentDimensions: docDims,
+      devicePixelRatio: dpr,
+      viewport: {
+        width: window.innerWidth,
+        height: window.innerHeight
+      },
+      timestamp: Date.now()
+    };
+
+    // Request screenshot from service worker
+    const response = await chrome.runtime.sendMessage({
+      action: 'captureViewportOrPage',
+      data: captureData
+    });
+
+    if (response.success) {
+      chrome.runtime.sendMessage({ action: 'captureSuccess' });
+    } else {
+      chrome.runtime.sendMessage({
+        action: 'captureError',
+        error: response.error
+      });
+    }
+  } catch (error) {
+    console.error('Viewport capture failed:', error);
+    chrome.runtime.sendMessage({
+      action: 'captureError',
+      error: error.message
+    });
+  }
+}
+
+/**
+ * Handle full page capture
+ * Captures the entire scrollable page with auto-scroll
+ */
+async function handleFullPageCapture() {
+  try {
+    // Notify popup that capture started
+    chrome.runtime.sendMessage({ action: 'captureStarted' });
+
+    // Scroll to top before starting
+    window.scrollTo({ left: 0, top: 0, behavior: 'instant' });
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+    // Get page dimensions
+    const scroll = getScrollOffsets();
+    const docDims = getDocumentDimensions();
+    const dpr = window.devicePixelRatio || 1;
+
+    // Prepare capture data for full page
+    const captureData = {
+      captureMode: 'fullpage',
+      scroll: scroll,
+      documentDimensions: docDims,
+      devicePixelRatio: dpr,
+      viewport: {
+        width: window.innerWidth,
+        height: window.innerHeight
+      },
+      timestamp: Date.now()
+    };
+
+    // Request screenshot from service worker
+    const response = await chrome.runtime.sendMessage({
+      action: 'captureViewportOrPage',
+      data: captureData
+    });
+
+    if (response.success) {
+      chrome.runtime.sendMessage({ action: 'captureSuccess' });
+    } else {
+      chrome.runtime.sendMessage({
+        action: 'captureError',
+        error: response.error
+      });
+    }
+  } catch (error) {
+    console.error('Full page capture failed:', error);
+    chrome.runtime.sendMessage({
+      action: 'captureError',
+      error: error.message
+    });
+  }
+}
+
+/**
  * Message handler
  * Routes messages from popup and service worker
  */
@@ -80,6 +184,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'hideDebugBorder':
         // Hide debug border
         hideDebugBorder();
+        sendResponse({ success: true });
+        break;
+
+      case 'captureViewport':
+        // Capture visible viewport without element selection
+        await handleViewportCapture();
+        sendResponse({ success: true });
+        break;
+
+      case 'captureFullPage':
+        // Capture full page with scrolling
+        await handleFullPageCapture();
         sendResponse({ success: true });
         break;
 

@@ -8,6 +8,8 @@ const captureBtn = document.getElementById('captureBtn');
 const btnLabel = document.getElementById('btnLabel');
 const statusPill = document.getElementById('statusPill');
 const statusText = document.getElementById('statusText');
+const captureViewportBtn = document.getElementById('captureViewportBtn');
+const captureFullPageBtn = document.getElementById('captureFullPageBtn');
 
 // Settings elements
 const qualityInput = document.getElementById('qualityInput');
@@ -210,6 +212,28 @@ qualityInput.addEventListener('change', saveSettings);
 // Settings - Checkboxes
 fullCaptureCheckbox.addEventListener('change', saveSettings);
 debugModeCheckbox.addEventListener('change', saveSettings);
+
+// Action Buttons - Viewport Capture
+captureViewportBtn.addEventListener('click', async () => {
+  try {
+    updateUI('capturing', 'Capturing viewport');
+    await sendToContentScript({ action: 'captureViewport' });
+    window.close();
+  } catch (error) {
+    updateUI('error', error.message);
+  }
+});
+
+// Action Buttons - Full Page Capture
+captureFullPageBtn.addEventListener('click', async () => {
+  try {
+    updateUI('capturing', 'Capturing full page');
+    await sendToContentScript({ action: 'captureFullPage' });
+    window.close();
+  } catch (error) {
+    updateUI('error', error.message);
+  }
+});
 
 // Chrome Runtime Messages
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {

@@ -235,6 +235,41 @@ body {
   }
 }
 
+/* Secondary Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 42px;
+}
+
+.action-btn:hover {
+  border-color: var(--accent-color);
+  background: rgba(59, 130, 246, 0.1);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
 /* Settings Container */
 .settings-container {
   display: flex;
