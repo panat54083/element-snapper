@@ -676,14 +676,23 @@ async function copyImageToClipboard(blob) {
       throw new Error('No active tab found');
     }
 
+    // Focus the window to ensure clipboard API works
+    // Clipboard API requires document focus for security reasons
+    await chrome.windows.update(tab.windowId, { focused: true });
+
     // Convert blob to data URL
     const dataUrl = await blobToDataURL(blob);
 
     // Send to content script to copy to clipboard
-    await chrome.tabs.sendMessage(tab.id, {
+    const response = await chrome.tabs.sendMessage(tab.id, {
       action: 'copyToClipboard',
       dataUrl: dataUrl
     });
+
+    // Check if the copy operation was successful
+    if (!response || !response.success) {
+      throw new Error(response?.error || 'Failed to copy to clipboard');
+    }
 
     console.log('Image copied to clipboard');
   } catch (error) {

@@ -95,6 +95,7 @@ async function handleClipboardCopy(dataUrl) {
     showNotification('Copied to clipboard', 'success');
   } catch (error) {
     console.error('Failed to copy to clipboard:', error);
+    showNotification('Failed to copy to clipboard: ' + error.message, 'error');
     throw error;
   }
 }
