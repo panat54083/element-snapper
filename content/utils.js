@@ -270,47 +270,27 @@ function showCountdownOverlay(seconds) {
     overlay.id = 'element-screenshot-countdown-overlay';
     overlay.style.cssText = `
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(8px);
+      top: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3), 0 0 0 2px #3b82f6;
       z-index: 2147483647;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
       color: white;
       font-family: system-ui, -apple-system, sans-serif;
-      animation: element-screenshot-fade-in 0.2s ease;
-    `;
-
-    // Create countdown number
-    const countdownNumber = document.createElement('div');
-    countdownNumber.style.cssText = `
-      font-size: 120px;
+      font-size: 28px;
       font-weight: 700;
-      line-height: 1;
-      margin-bottom: 24px;
-      color: #3b82f6;
-      text-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
-      animation: element-screenshot-pulse 1s ease infinite;
+      animation: element-screenshot-slide-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     `;
-    countdownNumber.textContent = seconds;
+    overlay.textContent = seconds;
 
-    // Create message
-    const message = document.createElement('div');
-    message.style.cssText = `
-      font-size: 18px;
-      font-weight: 500;
-      opacity: 0.9;
-      letter-spacing: 0.02em;
-    `;
-    message.textContent = 'Preparing to capture...';
-
-    overlay.appendChild(countdownNumber);
-    overlay.appendChild(message);
+    document.body.appendChild(overlay);
     document.body.appendChild(overlay);
 
     // Countdown logic
@@ -318,7 +298,7 @@ function showCountdownOverlay(seconds) {
     const interval = setInterval(() => {
       remaining--;
       if (remaining > 0) {
-        countdownNumber.textContent = remaining;
+        overlay.textContent = remaining;
       } else {
         clearInterval(interval);
         // Fade out
@@ -347,6 +327,17 @@ function injectCountdownStyles() {
       }
       to {
         opacity: 1;
+      }
+    }
+
+    @keyframes element-screenshot-slide-in {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
     }
 
