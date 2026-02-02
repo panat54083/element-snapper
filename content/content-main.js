@@ -16,6 +16,16 @@ let scrollbarState = null;
  */
 async function handleViewportCapture() {
   try {
+    // Load delay setting
+    const settings = await chrome.storage.local.get(['delay']);
+    const delay = settings.delay || 0;
+
+    // Show countdown if delay is enabled
+    if (delay > 0) {
+      injectCountdownStyles();
+      await showCountdownOverlay(delay);
+    }
+
     // Notify popup that capture started
     chrome.runtime.sendMessage({ action: 'captureStarted' });
 
@@ -91,6 +101,16 @@ async function handleClipboardCopy(dataUrl) {
  */
 async function handleFullPageCapture() {
   try {
+    // Load delay setting
+    const settings = await chrome.storage.local.get(['delay']);
+    const delay = settings.delay || 0;
+
+    // Show countdown if delay is enabled
+    if (delay > 0) {
+      injectCountdownStyles();
+      await showCountdownOverlay(delay);
+    }
+
     // Notify popup that capture started
     chrome.runtime.sendMessage({ action: 'captureStarted' });
 

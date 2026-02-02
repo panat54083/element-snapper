@@ -93,12 +93,20 @@ class ElementSelector {
     // Stop selection mode
     this.stop();
 
-    // Only scroll into view if full capture mode is enabled
-    // For regular capture, we want exactly what the user sees
-    const settings = await chrome.storage.local.get(['fullCapture', 'debugMode']);
+    // Load settings
+    const settings = await chrome.storage.local.get(['fullCapture', 'debugMode', 'delay']);
     const fullCapture = settings.fullCapture || false;
     const debugMode = settings.debugMode || false;
+    const delay = settings.delay || 0;
 
+    // Show countdown if delay is enabled
+    if (delay > 0) {
+      injectCountdownStyles();
+      await showCountdownOverlay(delay);
+    }
+
+    // Only scroll into view if full capture mode is enabled
+    // For regular capture, we want exactly what the user sees
     if (fullCapture) {
       await scrollIntoView(element);
     }

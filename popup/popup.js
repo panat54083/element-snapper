@@ -14,6 +14,8 @@ const captureFullPageBtn = document.getElementById('captureFullPageBtn');
 // Settings elements
 const qualityInput = document.getElementById('qualityInput');
 const qualityValue = document.getElementById('qualityValue');
+const delayInput = document.getElementById('delayInput');
+const delayValue = document.getElementById('delayValue');
 const fullCaptureCheckbox = document.getElementById('fullCaptureCheckbox');
 const debugModeCheckbox = document.getElementById('debugModeCheckbox');
 const clipboardCheckbox = document.getElementById('clipboardCheckbox');
@@ -85,7 +87,7 @@ async function sendToContentScript(message) {
  * Load saved settings from storage
  */
 async function loadSettings() {
-  const settings = await chrome.storage.local.get(['format', 'quality', 'fullCapture', 'debugMode', 'copyToClipboard']);
+  const settings = await chrome.storage.local.get(['format', 'quality', 'delay', 'fullCapture', 'debugMode', 'copyToClipboard']);
 
   // Format (Radio buttons)
   if (settings.format) {
@@ -97,6 +99,12 @@ async function loadSettings() {
   if (settings.quality) {
     qualityInput.value = settings.quality;
     updateQualityDisplay(settings.quality);
+  }
+
+  // Delay (Slider)
+  if (settings.delay !== undefined) {
+    delayInput.value = settings.delay;
+    updateDelayDisplay(settings.delay);
   }
 
   // Checkboxes
@@ -119,6 +127,14 @@ async function loadSettings() {
 function updateQualityDisplay(value) {
   qualityValue.textContent = `${value}%`;
   qualityInput.style.setProperty('--val', `${value}%`);
+}
+
+/**
+ * Update delay slider visual value and text
+ */
+function updateDelayDisplay(value) {
+  delayValue.textContent = value === 0 ? 'Off' : `${value}s`;
+  delayInput.style.setProperty('--val', `${(value / 10) * 100}%`);
 }
 
 /**
@@ -152,6 +168,7 @@ async function saveSettings() {
   await chrome.storage.local.set({
     format: selectedFormat,
     quality: parseInt(qualityInput.value),
+    delay: parseInt(delayInput.value),
     fullCapture: fullCaptureCheckbox.checked,
     debugMode: debugModeCheckbox.checked,
     copyToClipboard: clipboardCheckbox.checked
@@ -214,6 +231,12 @@ qualityInput.addEventListener('input', (e) => {
   updateQualityDisplay(e.target.value);
 });
 qualityInput.addEventListener('change', saveSettings);
+
+// Settings - Delay Slider
+delayInput.addEventListener('input', (e) => {
+  updateDelayDisplay(e.target.value);
+});
+delayInput.addEventListener('change', saveSettings);
 
 // Settings - Checkboxes
 fullCaptureCheckbox.addEventListener('change', saveSettings);

@@ -257,3 +257,119 @@ function hideDebugBorder() {
   const border = document.getElementById('element-screenshot-debug-border');
   if (border) border.remove();
 }
+
+/**
+ * Show countdown overlay before capture
+ * @param {number} seconds - Number of seconds to count down
+ * @returns {Promise<void>} Resolves when countdown completes
+ */
+function showCountdownOverlay(seconds) {
+  return new Promise((resolve) => {
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'element-screenshot-countdown-overlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 2147483647;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-family: system-ui, -apple-system, sans-serif;
+      animation: element-screenshot-fade-in 0.2s ease;
+    `;
+
+    // Create countdown number
+    const countdownNumber = document.createElement('div');
+    countdownNumber.style.cssText = `
+      font-size: 120px;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 24px;
+      color: #3b82f6;
+      text-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
+      animation: element-screenshot-pulse 1s ease infinite;
+    `;
+    countdownNumber.textContent = seconds;
+
+    // Create message
+    const message = document.createElement('div');
+    message.style.cssText = `
+      font-size: 18px;
+      font-weight: 500;
+      opacity: 0.9;
+      letter-spacing: 0.02em;
+    `;
+    message.textContent = 'Preparing to capture...';
+
+    overlay.appendChild(countdownNumber);
+    overlay.appendChild(message);
+    document.body.appendChild(overlay);
+
+    // Countdown logic
+    let remaining = seconds;
+    const interval = setInterval(() => {
+      remaining--;
+      if (remaining > 0) {
+        countdownNumber.textContent = remaining;
+      } else {
+        clearInterval(interval);
+        // Fade out
+        overlay.style.animation = 'element-screenshot-fade-out 0.2s ease';
+        setTimeout(() => {
+          overlay.remove();
+          resolve();
+        }, 200);
+      }
+    }, 1000);
+  });
+}
+
+/**
+ * Add countdown animation styles if not already present
+ */
+function injectCountdownStyles() {
+  if (document.getElementById('element-screenshot-countdown-styles')) return;
+
+  const style = document.createElement('style');
+  style.id = 'element-screenshot-countdown-styles';
+  style.textContent = `
+    @keyframes element-screenshot-fade-in {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes element-screenshot-fade-out {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+
+    @keyframes element-screenshot-pulse {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+      }
+    }
+  `;
+
+  document.head.appendChild(style);
+}
