@@ -210,17 +210,40 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         window.scrollTo({
           left: message.x,
           top: message.y,
-          behavior: 'instant'  // Instant scroll for precise positioning
+          behavior: 'smooth'  // Smooth scroll for better UX
         });
 
-        // Wait for rendering to complete using multiple RAF cycles
+        // Wait for smooth scroll to complete by checking when position stabilizes
         await new Promise(resolve => {
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              // Double RAF ensures rendering is complete
-              setTimeout(resolve, 100);
-            });
-          });
+          let lastX = window.scrollX;
+          let lastY = window.scrollY;
+          let stableCount = 0;
+
+          const checkStable = () => {
+            const currentX = window.scrollX;
+            const currentY = window.scrollY;
+
+            // Check if scroll position has stabilized (hasn't changed for 2 consecutive checks)
+            if (Math.abs(currentX - lastX) < 1 && Math.abs(currentY - lastY) < 1) {
+              stableCount++;
+              if (stableCount >= 2) {
+                // Position is stable, wait a bit more for rendering
+                setTimeout(resolve, 100);
+                return;
+              }
+            } else {
+              stableCount = 0;
+            }
+
+            lastX = currentX;
+            lastY = currentY;
+
+            // Check again in next frame
+            requestAnimationFrame(checkStable);
+          };
+
+          // Start checking after initial delay
+          setTimeout(() => requestAnimationFrame(checkStable), 50);
         });
 
         // Return actual scroll position (may differ from target if at document bounds)
