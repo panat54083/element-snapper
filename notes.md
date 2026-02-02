@@ -16,3 +16,4 @@
 ### Bug
 
 [x] Black line when capturing more than 2 tiles, it is compromise when i change the scroll behavior to instant
+[ ] Unalbe to copy to clipboard when using "visible area" and "full page" capture

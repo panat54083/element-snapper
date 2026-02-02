@@ -116,86 +116,43 @@
             />
           </div>
 
-          <div class="options-grid">
-            <label class="checkbox-card">
-              <input type="checkbox" id="fullCaptureCheckbox" />
-              <div class="card-content">
-                <span class="checkmark">
-                  <svg
-                    width="10"
-                    height="8"
-                    viewBox="0 0 10 8"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1 4L3.5 6.5L9 1"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </span>
-                <span class="card-text">
-                  <span class="card-title">Full Page</span>
-                  <span class="card-desc">Scroll & capture</span>
-                </span>
+          <div class="switch-group">
+            <label class="switch-row">
+              <div class="switch-content">
+                <span class="switch-label">Scroll Element</span>
+                <span class="switch-desc">Capture scrollable content</span>
               </div>
+              <input
+                type="checkbox"
+                id="fullCaptureCheckbox"
+                class="switch-input"
+              />
+              <div class="toggle-switch"></div>
             </label>
 
-            <label class="checkbox-card">
-              <input type="checkbox" id="debugModeCheckbox" />
-              <div class="card-content">
-                <span class="checkmark">
-                  <svg
-                    width="10"
-                    height="8"
-                    viewBox="0 0 10 8"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1 4L3.5 6.5L9 1"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </span>
-                <span class="card-text">
-                  <span class="card-title">Debug</span>
-                  <span class="card-desc">Show borders</span>
-                </span>
+            <label class="switch-row">
+              <div class="switch-content">
+                <span class="switch-label">Debug Mode</span>
+                <span class="switch-desc">Show selection borders</span>
               </div>
+              <input
+                type="checkbox"
+                id="debugModeCheckbox"
+                class="switch-input"
+              />
+              <div class="toggle-switch"></div>
             </label>
-
-            <label class="checkbox-card">
-              <input type="checkbox" id="clipboardCheckbox" />
-              <div class="card-content">
-                <span class="checkmark">
-                  <svg
-                    width="10"
-                    height="8"
-                    viewBox="0 0 10 8"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M1 4L3.5 6.5L9 1"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </span>
-                <span class="card-text">
-                  <span class="card-title">Clipboard</span>
-                  <span class="card-desc">Copy instead</span>
-                </span>
+            <label class="switch-row">
+              <div class="switch-content">
+                <span class="switch-label">Clipboard</span>
+                <span class="switch-desc">Copy instead of download</span>
               </div>
+              <input
+                type="checkbox"
+                id="clipboardCheckbox"
+                class="switch-input"
+              />
+              <div class="toggle-switch"></div>
             </label>
           </div>
         </div>

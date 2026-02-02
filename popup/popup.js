@@ -140,19 +140,15 @@ function updateDelayDisplay(value) {
 /**
  * Update quality slider visibility based on format
  */
+// Update quality slider visibility based on format
 function updateQualityState() {
   const selectedFormat = document.querySelector('input[name="format"]:checked')?.value || 'png';
   const qualityGroup = qualityInput.closest('.setting-group');
-  const qualityLabel = qualityGroup.querySelector('.setting-label');
 
   if (selectedFormat === 'png') {
-    qualityGroup.classList.add('disabled');
-    qualityInput.disabled = true;
-    qualityLabel.textContent = 'Quality (JPG Only)';
+    qualityGroup.style.display = 'none';
   } else {
-    qualityGroup.classList.remove('disabled');
-    qualityInput.disabled = false;
-    qualityLabel.textContent = 'Quality';
+    qualityGroup.style.display = 'flex';
   }
 }
 
