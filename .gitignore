@@ -41,3 +41,5 @@ yarn-error.log*
 # Optional: node_modules if you add build tools later
 node_modules/
 dist/
+*.zip
+
