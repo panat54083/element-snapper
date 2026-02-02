@@ -389,3 +389,6 @@ MIT License - feel free to use this extension for any purpose.
 ## Credits
 
 Built with Chrome Extension Manifest V3 APIs. No external libraries used.
+
+## Support
+Buy me a coffee: [https://buymeacoffee.com/panat.siriwong](https://buymeacoffee.com/panat.siriwong)
