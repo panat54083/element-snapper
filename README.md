@@ -6,12 +6,15 @@ A professional Chrome extension that captures pixel-perfect screenshots of any w
 
 - **Pixel-Perfect Capture**: Accurate element screenshots with DPR-aware cropping
 - **Full Element Capture**: Multi-tile stitching for elements larger than viewport
+- **Quick Actions**: One-click viewport and full page screenshot buttons
+- **Clipboard Support**: Copy screenshots directly to clipboard instead of downloading
+- **Delayed Capture**: Configurable countdown timer (0-10s) for capturing hover states and dynamic content
 - **Professional UI**: Clean, minimal design with consistent visual language
 - **Format Options**: Save as PNG (lossless) or JPEG (with quality control)
 - **Smart Scrolling**: Automatically scrolls elements into view before capture (full mode only)
 - **Debug Mode**: Visual borders showing capture process in real-time
 - **Edge Case Handling**: Handles fixed elements, scrollable containers, and cross-origin iframes
-- **One-Click Download**: Screenshots saved directly to downloads folder
+- **Flexible Output**: Save to downloads folder or copy to clipboard
 
 ## Installation
 
@@ -26,18 +29,29 @@ A professional Chrome extension that captures pixel-perfect screenshots of any w
 
 ## Usage
 
+### Element Capture
+
 1. Click the extension icon to open popup
-2. Click "Capture" button
+2. Click "Select Element" button
 3. Hover over elements on the page (highlighted with blue outline)
 4. Click on desired element to capture
-5. Screenshot automatically downloads to your default downloads folder
+5. Screenshot downloads to your default downloads folder (or copies to clipboard if enabled)
+
+### Quick Actions
+
+- **Visible Area**: Click to instantly capture the current visible viewport
+- **Full Page**: Click to capture the entire scrollable page with auto-scroll and stitching
 
 ### Settings
 
 - **Format**: Choose PNG (lossless, larger file) or JPEG (lossy, smaller file)
 - **Quality**: Adjust JPEG compression quality (1-100, default 95)
-- **Capture full element**: Enable multi-tile stitching for elements larger than viewport
-- **Debug mode**: Show red and green borders during capture process
+- **Delay**: Set countdown timer before capture (0-10 seconds, default 0)
+  - Useful for capturing hover states, dropdown menus, tooltips, and dynamic UI elements
+  - Shows full-screen countdown overlay with animated number
+- **Full Page**: Enable multi-tile stitching for elements larger than viewport
+- **Debug**: Show borders during multi-tile capture process
+- **Clipboard**: Copy screenshots to clipboard instead of downloading
 
 Settings are automatically saved and persist between sessions.
 
@@ -336,6 +350,15 @@ Contributions are welcome! Please:
 MIT License - feel free to use this extension for any purpose.
 
 ## Changelog
+
+### v1.2.0 (2026-02-02)
+
+- **New**: Add quick action buttons for viewport and full page capture
+- **New**: Copy to clipboard option - skip downloads and copy directly to system clipboard
+- **New**: Delayed capture with countdown timer (0-10 seconds)
+  - Full-screen countdown overlay with animated number
+  - Useful for capturing hover states, menus, and dynamic content
+- **Enhancement**: All three capture modes support delay and clipboard features
 
 ### v1.1.0 (2026-02-01)
 

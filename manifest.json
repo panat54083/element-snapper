@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Element Snapper",
-  "version": "1.0.0",
-  "description": "Capture precise screenshots of any element with smart cropping and device pixel ratio support",
+  "version": "1.2.0",
+  "description": "Capture pixel-perfect screenshots of elements, viewport, or full pages with clipboard support and delayed capture",
 
   "permissions": ["activeTab", "tabs", "scripting", "downloads", "storage", "clipboardWrite"],
 
