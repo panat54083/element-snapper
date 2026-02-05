@@ -1,10 +1,16 @@
 {
   "manifest_version": 3,
   "name": "Element Snapper",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Capture pixel-perfect screenshots of elements, viewport, or full pages with clipboard support and delayed capture",
 
-  "permissions": ["activeTab", "tabs", "scripting", "downloads", "storage", "clipboardWrite"],
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "downloads",
+    "storage",
+    "clipboardWrite"
+  ],
 
   "action": {
     "default_popup": "popup/popup.html",
